@@ -1,6 +1,6 @@
 package com.example.progresstracker.data.repository
 
-import com.example.progresstracker.data.local.dao.GoalDao
+import com.example.progresstracker.data.local.db.dao.GoalDao
 import com.example.progresstracker.data.mapper.toEntity
 import com.example.progresstracker.data.mapper.toModel
 import com.example.progresstracker.di.ApplicationScope

@@ -1,10 +1,9 @@
-package com.example.progresstracker.data.local.entity
+package com.example.progresstracker.data.local.db.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-
 
 @Entity(
     tableName = "task_durations",
@@ -13,7 +12,7 @@ import androidx.room.PrimaryKey
         entity = DailyTaskEntity::class,
         parentColumns = ["id"],
         childColumns = ["dailyTaskId"],
-        onDelete = ForeignKey.CASCADE
+        onDelete = ForeignKey.Companion.CASCADE
     )]
 )
 data class TaskDurationEntity(

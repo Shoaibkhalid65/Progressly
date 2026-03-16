@@ -1,6 +1,5 @@
-package com.example.progresstracker.data.local.entity
+package com.example.progresstracker.data.local.db.entity
 
-import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 

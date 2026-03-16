@@ -1,9 +1,8 @@
 package com.example.progresstracker.data.repository
 
-import android.util.Log
-import com.example.progresstracker.data.datastore.StartTimePreferencesManager
-import com.example.progresstracker.data.local.dao.DailyTaskDao
-import com.example.progresstracker.data.local.dao.TaskDurationDao
+import com.example.progresstracker.data.local.datastore.StartTimePreferencesManager
+import com.example.progresstracker.data.local.db.dao.DailyTaskDao
+import com.example.progresstracker.data.local.db.dao.TaskDurationDao
 import com.example.progresstracker.data.mapper.toEntity
 import com.example.progresstracker.data.mapper.toModel
 import com.example.progresstracker.di.ApplicationScope
@@ -14,7 +13,6 @@ import com.example.progresstracker.model.TaskDuration
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -22,7 +20,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.max
 
 @Singleton
 class DailyTaskRepository @Inject constructor(

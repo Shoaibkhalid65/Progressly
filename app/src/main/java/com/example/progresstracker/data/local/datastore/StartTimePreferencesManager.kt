@@ -1,4 +1,4 @@
-package com.example.progresstracker.data.datastore
+package com.example.progresstracker.data.local.datastore
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences

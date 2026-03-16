@@ -1,9 +1,9 @@
 package com.example.progresstracker.data.mapper
 
 import android.webkit.JavascriptInterface
-import com.example.progresstracker.data.local.entity.DailyTaskEntity
-import com.example.progresstracker.data.local.entity.GoalEntity
-import com.example.progresstracker.data.local.entity.TaskDurationEntity
+import com.example.progresstracker.data.local.db.entity.DailyTaskEntity
+import com.example.progresstracker.data.local.db.entity.GoalEntity
+import com.example.progresstracker.data.local.db.entity.TaskDurationEntity
 import com.example.progresstracker.model.DailyTask
 import com.example.progresstracker.model.DifficultyLevel
 import com.example.progresstracker.model.Goal

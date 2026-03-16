@@ -2,10 +2,10 @@ package com.example.progresstracker.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.progresstracker.data.local.dao.DailyTaskDao
-import com.example.progresstracker.data.local.dao.GoalDao
-import com.example.progresstracker.data.local.dao.TaskDurationDao
-import com.example.progresstracker.data.local.database.AppDatabase
+import com.example.progresstracker.data.local.db.dao.DailyTaskDao
+import com.example.progresstracker.data.local.db.dao.GoalDao
+import com.example.progresstracker.data.local.db.dao.TaskDurationDao
+import com.example.progresstracker.data.local.db.database.AppDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
