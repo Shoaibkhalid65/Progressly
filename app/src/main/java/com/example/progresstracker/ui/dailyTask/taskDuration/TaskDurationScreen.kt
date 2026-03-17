@@ -22,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -47,26 +48,24 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.progresstracker.R
 import com.example.progresstracker.model.TaskDuration
 import com.example.progresstracker.ui.gaols.showToast
+import com.example.progresstracker.utils.DateTimeUtils
 
 @Composable
 fun TaskDurationScreen(
+    snackbarHostState: SnackbarHostState,
     viewModel: TaskDurationViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-
-//    val durations by viewModel.durationsToShow.collectAsStateWithLifecycle()
-//    val startTime by viewModel.startTime.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
                 is TaskDurationUiEvent.Success -> {
-                    showToast(context, "Success: ${event.message}")
+                    snackbarHostState.showSnackbar(message = event.message)
                 }
 
                 is TaskDurationUiEvent.Error -> {
-                    showToast(context, "Error: ${event.message}")
+                    snackbarHostState.showSnackbar(message = event.message)
                 }
             }
         }
@@ -99,7 +98,7 @@ fun TaskDurationScreen(
                 modifier = Modifier.fillMaxWidth(),
                 headlineContent = {
                     Text(
-                        text = "Duration Time : ${viewModel.millisToFormattedDuration(duration.durationTime)}"
+                        text = "Duration Time : ${DateTimeUtils.millisToFormattedDuration(duration.durationTime)}"
                     )
                 },
                 leadingContent = {
@@ -112,11 +111,11 @@ fun TaskDurationScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Start time ${viewModel.millisToFormattedTime(duration.startTime)}"
+                            text = "Start time ${DateTimeUtils.millisToFormattedTime(duration.startTime)}"
                         )
 
                         Text(
-                            text = "End time ${viewModel.millisToFormattedTime(duration.endTime)}"
+                            text = "End time ${DateTimeUtils.millisToFormattedTime(duration.endTime)}"
                         )
                     }
                 },
@@ -166,10 +165,10 @@ fun TaskDurationScreen(
             },
             startTime = uiState.startTime,
             formattedStartTime = {
-                viewModel.millisToFormattedTime(it)
+                DateTimeUtils.millisToFormattedTime(it)
             },
             formatedDurationTime = {
-                viewModel.millisToFormattedDuration(it,true)
+                DateTimeUtils.millisToFormattedDuration(it,true)
             },
             onStartTimeUpdated = {
                 viewModel.saveStartTime(it)

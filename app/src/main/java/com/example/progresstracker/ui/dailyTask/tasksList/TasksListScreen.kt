@@ -35,6 +35,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -43,7 +44,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,19 +51,17 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.progresstracker.model.DailyTask
-import com.example.progresstracker.model.calculateIslamicDate
 import com.example.progresstracker.navigation.Screen
-import com.example.progresstracker.ui.gaols.showToast
+import com.example.progresstracker.utils.DateTimeUtils
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TasksListScreen(
+    snackbarHostState: SnackbarHostState,
     navController: NavHostController,
     viewModel: TasksListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-//    val filterState by viewModel.filterState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
@@ -77,11 +75,11 @@ fun TasksListScreen(
                 }
 
                 is TasksListUiEvent.Success -> {
-                    showToast(context, "Success : ${event.message}")
+                    snackbarHostState.showSnackbar(message = event.message)
                 }
 
                 is TasksListUiEvent.Error -> {
-                    showToast(context, "Error : ${event.message}")
+                    snackbarHostState.showSnackbar(message = event.message)
                 }
             }
         }
@@ -196,7 +194,7 @@ fun TasksListScreen(
             items(items = uiState.tasks, key = { it.id }) { dailyTask ->
                 DailyTaskItem(
                     dailyTask = dailyTask,
-                    totalDurationFormatted = viewModel.millisToFormattedDuration(dailyTask.totalTaskDuration),
+                    totalDurationFormatted = DateTimeUtils.millisToFormattedDuration(dailyTask.totalTaskDuration),
                     onEditClick = {
                         viewModel.onUpdateTaskClick(it)
                     },
@@ -205,7 +203,7 @@ fun TasksListScreen(
                         viewModel.updateTaskToDeleteId(it)
                     },
                     formatedDate = { millis, isOnlyDate ->
-                        viewModel.formatedDate(millis, isOnlyDate)
+                        DateTimeUtils.formatedDate(millis, isOnlyDate)
                     }
                 )
             }
@@ -315,7 +313,7 @@ fun DailyTaskItem(
                     fontSize = 12.sp
                 )
                 Text(
-                    text = calculateIslamicDate(dailyTask.englishDate),
+                    text = DateTimeUtils.calculateIslamicDate(dailyTask.englishDate),
                     fontSize = 12.sp
                 )
             }

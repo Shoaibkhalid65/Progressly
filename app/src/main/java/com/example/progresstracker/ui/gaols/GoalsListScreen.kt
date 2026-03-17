@@ -2,6 +2,8 @@ package com.example.progresstracker.ui.gaols
 
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +44,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -49,6 +54,7 @@ import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -57,13 +63,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.progresstracker.model.Goal
 import com.example.progresstracker.navigation.Screen
+import com.example.progresstracker.utils.DateTimeUtils
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -72,25 +80,32 @@ fun GoalsListScreen(
     navHostController: NavHostController,
     goalsListViewModel: GoalsListViewModel = hiltViewModel(),
 ) {
-
     val uiState by goalsListViewModel.goalsUiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
 
     val tabs = remember { listOf("All", "Pending", "Completed") }
-
     val pagerState = rememberPagerState { 3 }
 
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val density = LocalDensity.current
+    val fabOffsetPx = with(density) { 45.dp.toPx() }
+    val snackbarOffset = with(density) { 80.dp.toPx() }
+
+    val fabOffset by animateFloatAsState(
+        targetValue = if (snackbarHostState.currentSnackbarData == null) 0f else -fabOffsetPx,
+        animationSpec = tween(300),
+        label = "fab offset"
+    )
 
     LaunchedEffect(Unit) {
         goalsListViewModel.events.collect {
             when (it) {
                 is GoalsUiEvent.Success -> {
-                    showToast(context, "Success ${it.data}")
+                    snackbarHostState.showSnackbar(it.data)
                 }
 
                 is GoalsUiEvent.Error -> {
-                    showToast(context, "Error ${it.errorMessage}")
+                    snackbarHostState.showSnackbar(it.errorMessage)
                 }
 
                 is GoalsUiEvent.NavigateToCreateScreen -> {
@@ -138,6 +153,9 @@ fun GoalsListScreen(
             FloatingActionButton(
                 onClick = {
                     goalsListViewModel.onCreateGoalClick()
+                },
+                modifier = Modifier.graphicsLayer {
+                    translationY = fabOffset
                 }
             ) {
                 Icon(
@@ -146,7 +164,20 @@ fun GoalsListScreen(
                 )
             }
         },
-        contentWindowInsets = WindowInsets()
+        contentWindowInsets = WindowInsets(),
+        snackbarHost = {
+            SnackbarHost(
+                snackbarHostState,
+                snackbar = { snackbarData ->
+                    Snackbar(
+                        snackbarData,
+                    )
+                },
+                modifier = Modifier.graphicsLayer {
+                    translationY= snackbarOffset
+                }
+            )
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -247,7 +278,7 @@ fun GoalsListScreen(
                                     goalsListViewModel.onIsCompletedToggleClick(goal, it)
                                 },
                                 formatedDate = { millis, isOnlyDate ->
-                                    goalsListViewModel.formatedDate(millis, isOnlyDate)
+                                    DateTimeUtils.formatedDate(millis, isOnlyDate)
                                 }
                             )
 

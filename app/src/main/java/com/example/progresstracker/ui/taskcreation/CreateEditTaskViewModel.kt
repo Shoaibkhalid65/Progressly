@@ -45,8 +45,12 @@ class CreateEditTaskViewModel @Inject constructor(
     private fun loadTaskForEditing(taskId: Long) {
         viewModelScope.launch {
             val task = repository.getDailyTaskById(taskId)
-            _uiState.update {
-                task.toUiState()
+            if (task != null) {
+                _uiState.update {
+                    task.toUiState()
+                }
+            } else {
+                _uiEvents.emit(CreateEditTaskUiEvent.Error("Task not found"))
             }
         }
     }
@@ -87,66 +91,42 @@ class CreateEditTaskViewModel @Inject constructor(
         }
     }
 
-    fun timePickerToMillis(hour: Int, minutes: Int): Long {
-        return LocalDateTime.of(LocalDate.now(), LocalTime.of(hour, minutes))
-            .atZone(ZoneId.systemDefault())
-            .toInstant()
-            .toEpochMilli()
-    }
-
-    fun millisToFormattedTime(millis: Long): String {
-        val localDateTime = LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(millis),
-            ZoneId.systemDefault()
-        )
-        return String.format(Locale.getDefault(),"%02d:%02d", localDateTime.hour, localDateTime.minute)
-    }
-
-    fun millisToFormattedDuration(millis: Long): String {
-        val localDateTime = LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(millis),
-            ZoneId.of("UTC")
-        )
-        return String.format(Locale.getDefault(),"%02d:%02d", localDateTime.hour, localDateTime.minute)
-    }
-
-
-    fun updateShowTimePickerDialog(showDialog: Boolean){
+    fun updateShowTimePickerDialog(showDialog: Boolean) {
         _uiState.update {
             it.copy(showTimePickerDialog = showDialog)
         }
     }
 
-    fun updateShowPercentageDialog(showDialog: Boolean){
+    fun updateShowPercentageDialog(showDialog: Boolean) {
         _uiState.update {
             it.copy(showSelectSatisfyPerDialog = showDialog)
         }
     }
 
-    fun updateIsTimePickerForStartTime(isForStartTime: Boolean){
+    fun updateIsTimePickerForStartTime(isForStartTime: Boolean) {
         _uiState.update {
             it.copy(isTimePickerForStartTime = isForStartTime)
         }
     }
 
-    fun updateSelectedDurationId(id: String?){
+    fun updateSelectedDurationId(id: String?) {
         _uiState.update {
             it.copy(selectedDurationId = id)
         }
     }
 
-    fun createOrUpdateDailyTask(dailyTask: DailyTask){
+    fun createOrUpdateDailyTask(dailyTask: DailyTask) {
         viewModelScope.launch {
-            if(dailyTask.title.isEmpty()){
+            if (dailyTask.title.isEmpty()) {
                 _uiEvents.emit(CreateEditTaskUiEvent.Error("Title can't be empty"))
                 return@launch
             }
             dailyTask.durations.forEach { duration ->
-                if(duration.startTime!=0L && duration.endTime ==0L){
+                if (duration.startTime != 0L && duration.endTime == 0L) {
                     _uiEvents.emit(CreateEditTaskUiEvent.Error("Also select the end time"))
                     return@launch
                 }
-                if(duration.startTime==0L && duration.endTime !=0L){
+                if (duration.startTime == 0L && duration.endTime != 0L) {
                     _uiEvents.emit(CreateEditTaskUiEvent.Error("Also select the start time"))
                     return@launch
                 }
@@ -169,7 +149,7 @@ data class CreateEditTaskUiState(
     val showTimePickerDialog: Boolean = false,
     val showSelectSatisfyPerDialog: Boolean = false,
     val isTimePickerForStartTime: Boolean = true,
-    val selectedDurationId: String?=null
+    val selectedDurationId: String? = null
 )
 
 data class TaskDurationUiState(
@@ -185,10 +165,10 @@ fun TaskDurationUiState.toModel() = TaskDuration(
     endTime = endTime
 )
 
-fun TaskDuration.toUIState()= TaskDurationUiState(
+fun TaskDuration.toUIState() = TaskDurationUiState(
     id = id,
-    startTime=startTime,
-    endTime=endTime
+    startTime = startTime,
+    endTime = endTime
 )
 
 fun DailyTask.toUiState() = CreateEditTaskUiState(
@@ -201,17 +181,16 @@ fun DailyTask.toUiState() = CreateEditTaskUiState(
     isEditMode = true,
 )
 
-fun CreateEditTaskUiState.toModel(): DailyTask {
-    return DailyTask(
-            id = id ?: 0L,
-            title = title,
-            description = description,
-            remarks = remarks,
-            satisfyPercentage = satisfyPercentage,
-            englishDate = System.currentTimeMillis(),
-            durations = if(taskDurations.isNotEmpty()) taskDurations.map { it.toModel() } else emptyList()
-        )
-}
+fun CreateEditTaskUiState.toModel() = DailyTask(
+    id = id ?: 0L,
+    title = title,
+    description = description,
+    remarks = remarks,
+    satisfyPercentage = satisfyPercentage,
+    englishDate = System.currentTimeMillis(),
+    durations = if (taskDurations.isNotEmpty()) taskDurations.map { it.toModel() } else emptyList()
+)
+
 
 sealed class CreateEditTaskUiEvent {
     data class Error(val message: String) : CreateEditTaskUiEvent()

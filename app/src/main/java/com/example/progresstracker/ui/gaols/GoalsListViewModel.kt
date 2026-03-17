@@ -39,16 +39,6 @@ class GoalsListViewModel @Inject constructor(
 
     private fun loadGoals() {
         viewModelScope.launch {
-//            repository.observeAllGoals().collect { goals ->
-//                _goalsUiState.update { uiState ->
-//                    uiState.copy(
-//                        isLoading = false,
-//                        allGoals = goals,
-//                        completedGoals = goals.filter { it.isCompleted },
-//                        pendingGoals = goals.filterNot { it.isCompleted }
-//                    )
-//                }
-//            }
             repository.observeAllGoals().combine(_filterState){ goals,filterState ->
                  applyFilters(goals,filterState)
             }.collect { goals->
@@ -191,16 +181,6 @@ class GoalsListViewModel @Inject constructor(
         }
     }
 
-    fun formatedDate(epochMillis: Long, isOnlyDateRequired: Boolean = false): String {
-        val instant = Instant.ofEpochMilli(epochMillis)
-        val localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
-        val formatter =
-            if (isOnlyDateRequired) DateTimeFormatter.ofPattern("dd MMM yyyy") else DateTimeFormatter.ofPattern(
-                "dd MMM yyyy, hh:mm a"
-            )
-        return localDateTime.format(formatter)
-    }
-
 }
 
 
@@ -211,8 +191,6 @@ sealed class GoalsUiEvent {
     object NavigateToCreateScreen : GoalsUiEvent()
     data class ShowDeleteDialog(val goalId: Long) : GoalsUiEvent()
     object ShowDeleteAllDialog : GoalsUiEvent()
-
-
 }
 
 

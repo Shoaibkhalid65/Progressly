@@ -16,11 +16,8 @@ import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAdjusters
-import java.util.Locale
 import javax.inject.Inject
-import kotlin.math.abs
 
 @HiltViewModel
 class TasksListViewModel @Inject constructor(
@@ -69,8 +66,6 @@ class TasksListViewModel @Inject constructor(
         val currentYear = currentDateTime.year
         val currentMonth = currentDateTime.monthValue
         val currentDayOfMonth = currentDateTime.dayOfMonth
-        val currentDayOfWeek = currentDateTime.dayOfWeek
-
 
 
         filteredTasks = when (filterState.selectionOption) {
@@ -155,24 +150,30 @@ class TasksListViewModel @Inject constructor(
         viewModelScope.launch {
             if (taskId != -1L) {
                 val dailyTask = repository.getDailyTaskById(taskId)
-                repository.deleteDailyTask(dailyTask)
-                    .onSuccess { tasksDeleted ->
-                        if (tasksDeleted == 0) {
+                if (dailyTask != null) {
+                    repository.deleteDailyTask(dailyTask)
+                        .onSuccess { tasksDeleted ->
+                            if (tasksDeleted == 0) {
+                                _uiEvent.emit(
+                                    TasksListUiEvent.Error("task not deleted")
+                                )
+                            } else {
+                                _uiEvent.emit(
+                                    TasksListUiEvent.Success("task deleted successfully")
+                                )
+                            }
+
+                        }
+                        .onFailure {
                             _uiEvent.emit(
-                                TasksListUiEvent.Error("task not deleted")
-                            )
-                        } else {
-                            _uiEvent.emit(
-                                TasksListUiEvent.Success("task deleted successfully")
+                                TasksListUiEvent.Error(it.message ?: "unknown error message")
                             )
                         }
-
-                    }
-                    .onFailure {
-                        _uiEvent.emit(
-                            TasksListUiEvent.Error(it.message ?: "unknown error message")
-                        )
-                    }
+                } else {
+                    _uiEvent.emit(
+                        TasksListUiEvent.Error("Task not found")
+                    )
+                }
             }
         }
     }
@@ -205,19 +206,6 @@ class TasksListViewModel @Inject constructor(
         }
     }
 
-
-    fun millisToFormattedDuration(millis: Long): String {
-        val localDateTime = LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(millis),
-            ZoneId.of("UTC")
-        )
-        return String.format(
-            Locale.getDefault(),
-            "%02d:%02d",
-            localDateTime.hour,
-            localDateTime.minute
-        )
-    }
 
     fun updateShowDeleteAllDialog(showDialog: Boolean) {
         _uiState.update {
@@ -254,17 +242,6 @@ class TasksListViewModel @Inject constructor(
             it.copy(selectionOption = selectionOption)
         }
     }
-
-    fun formatedDate(epochMillis: Long, isOnlyDateRequired: Boolean = false): String {
-        val instant = Instant.ofEpochMilli(epochMillis)
-        val localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
-        val formatter =
-            if (isOnlyDateRequired) DateTimeFormatter.ofPattern("dd MMM yyyy") else DateTimeFormatter.ofPattern(
-                "dd MMM yyyy, hh:mm a"
-            )
-        return localDateTime.format(formatter)
-    }
-
 
 }
 

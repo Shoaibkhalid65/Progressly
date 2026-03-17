@@ -88,17 +88,11 @@ class CreateEditGoalViewModel @Inject constructor(
         _uiState.update { it.copy(urgencyLevel = urgencyLevel) }
     }
 
-    fun updateDisplayStateOfDatePickerDialog(showDatePickerDialog: Boolean){
-        _uiState.update { it.copy(showDatePickerDialog=showDatePickerDialog) }
+    fun updateDisplayStateOfDatePickerDialog(showDatePickerDialog: Boolean) {
+        _uiState.update { it.copy(showDatePickerDialog = showDatePickerDialog) }
     }
 
-//    fun onOpenDatePickerDialogClick(){
-//        updateDisplayStateOfDatePickerDialog(true)
-//    }
 }
-
-
-
 
 data class CreateEditGoalUiState(
     val goalId: Long? = null,
@@ -109,13 +103,12 @@ data class CreateEditGoalUiState(
     val importanceLevel: ImportanceLevel = ImportanceLevel.AVERAGE,
     val urgencyLevel: UrgencyLevel = UrgencyLevel.NOT_URGENT,
     val isEditMode: Boolean = false,
-    val showDatePickerDialog : Boolean = false
+    val showDatePickerDialog: Boolean = false
 )
 
 sealed class CreateEditGoalUiEvent() {
     data class Error(val errorMessage: String) : CreateEditGoalUiEvent()
-//    object Success : CreateEditGoalUiEvent()
-    object NavigateToListScreen : CreateEditGoalUiEvent()
+    data object NavigateToListScreen : CreateEditGoalUiEvent()
 }
 
 fun Goal.toUiState() = CreateEditGoalUiState(
@@ -129,32 +122,15 @@ fun Goal.toUiState() = CreateEditGoalUiState(
     isEditMode = true
 )
 
-fun CreateEditGoalUiState.toModel(): Goal{
-    return goalId?.let {
-        Goal(
-            id = it,
-            createdAt = System.currentTimeMillis(),
-            title = title,
-            description=description,
-            isCompleted = false,
-            expectedCompletionDate=expectedCompletionDate,
-            completionDate = 0L,
-            difficultyLevel=difficultyLevel,
-            importanceLevel=importanceLevel,
-            urgencyLevel=urgencyLevel
-        )
-    } ?: Goal(
-        createdAt = System.currentTimeMillis(),
-        title = title,
-        description=description,
-        isCompleted = false,
-        expectedCompletionDate=expectedCompletionDate,
-        completionDate = 0L,
-        difficultyLevel=difficultyLevel,
-        importanceLevel=importanceLevel,
-        urgencyLevel=urgencyLevel
-    )
-}
-
-
-
+fun CreateEditGoalUiState.toModel() = Goal(
+    id = goalId ?: 0L,
+    createdAt = System.currentTimeMillis(),
+    title = title,
+    description = description,
+    isCompleted = false,
+    expectedCompletionDate = expectedCompletionDate,
+    completionDate = 0L,
+    difficultyLevel = difficultyLevel,
+    importanceLevel = importanceLevel,
+    urgencyLevel = urgencyLevel
+)

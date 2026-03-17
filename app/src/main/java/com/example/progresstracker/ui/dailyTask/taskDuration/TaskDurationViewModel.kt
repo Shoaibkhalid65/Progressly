@@ -81,15 +81,15 @@ class TaskDurationViewModel @Inject constructor(
         }
     }
 
-    fun updateStartTime(startTime: Long) {
-        _uiState.update {
-            it.copy(startTime = startTime)
-        }
-    }
-
     fun updateEndTime(endTime: Long) {
         _uiState.update {
             it.copy(endTime = endTime)
+        }
+    }
+
+    fun saveStartTime(millis: Long) {
+        viewModelScope.launch {
+            repository.createOrEditStartTime(millis)
         }
     }
 
@@ -162,39 +162,6 @@ class TaskDurationViewModel @Inject constructor(
                 }
         }
     }
-
-    fun saveStartTime(millis: Long) {
-        viewModelScope.launch {
-            repository.createOrEditStartTime(millis)
-        }
-    }
-
-
-    fun millisToFormattedTime(millis: Long): String {
-        val localDateTime = LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(millis),
-            ZoneId.systemDefault() // converts back correctly for Pakistani user
-        )
-        return String.format(
-            Locale.getDefault(),
-            "%02d:%02d",
-            localDateTime.hour,
-            localDateTime.minute
-        )
-    }
-
-    fun millisToFormattedDuration(millis: Long, isSecondsReq: Boolean = false): String {
-        val localDateTime = LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(millis),
-            ZoneId.of("UTC") // converts back correctly for Pakistani user
-        )
-        return String.format(
-            locale = Locale.getDefault(),
-            format = if (isSecondsReq) "%02d:%02d:%02d" else "%02d:%02d",
-            args = arrayOf(localDateTime.hour, localDateTime.minute, localDateTime.second)
-        )
-    }
-
 
 }
 

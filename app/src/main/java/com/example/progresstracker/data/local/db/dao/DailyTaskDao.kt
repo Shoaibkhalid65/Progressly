@@ -21,7 +21,7 @@ interface DailyTaskDao {
     suspend fun deleteAllDailyTasks(): Int
 
     @Query("Select * from daily_tasks where id=:dailyTaskId ")
-    suspend fun getDailyTaskById(dailyTaskId: Long): DailyTaskEntity
+    suspend fun getDailyTaskById(dailyTaskId: Long): DailyTaskEntity?
 
     @Query("Select * from daily_tasks order by id")
     fun getAllDailyTasks(): Flow<List<DailyTaskEntity>>

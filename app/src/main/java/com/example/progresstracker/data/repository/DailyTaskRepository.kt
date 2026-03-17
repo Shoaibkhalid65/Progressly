@@ -34,27 +34,30 @@ class DailyTaskRepository @Inject constructor(
     // duration methods
     suspend fun createOrUpdateTaskDuration(taskDuration: TaskDuration): Result<Long> {
         return try {
-            var id=-1L
+            var id = -1L
             val maxTaskId = getMaxTaskId().first()
-            if(maxTaskId!=-1L) {
-                val lastStoredTask = dailyTaskDao.getDailyTaskById(maxTaskId)
-                if (lastStoredTask.title.isNotEmpty()) {
-                    dailyTaskDao.upsertDailyTask(
-                        DailyTask(
-                            id = 0L,
-                            title = "",
-                            description = "",
-                            remarks = "",
-                            satisfyPercentage = SatisfyPercentage.PER_0,
-                            durations = emptyList(),
-                            englishDate = 0L
-                        ).toEntity()
-                    )
-                }
+            val lastStoredTask = dailyTaskDao.getDailyTaskById(maxTaskId)
+            if (lastStoredTask == null || lastStoredTask.title.isNotEmpty()) {
+                dailyTaskDao.upsertDailyTask(
+                    DailyTask(
+                        id = 0L,
+                        title = "",
+                        description = "",
+                        remarks = "",
+                        satisfyPercentage = SatisfyPercentage.PER_0,
+                        durations = emptyList(),
+                        englishDate = 0L
+                    ).toEntity()
+                )
+
                 id =
                     taskDurationDao.upsertTaskDuration(taskDuration.toEntity(getMaxTaskId().first()))
             }
-            Result.success(id)
+            if (id == -1L) {
+                Result.failure(Throwable("Duration not created"))
+            } else {
+                Result.success(id)
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -95,13 +98,13 @@ class DailyTaskRepository @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     fun observeDurationsForMaxTaskIdToShow(): Flow<List<TaskDuration>> {
-        return dailyTaskDao.getMaxId().flatMapLatest { taskId->
+        return dailyTaskDao.getMaxId().flatMapLatest { taskId ->
             taskDurationDao.getAllDurationsByTaskId(taskId)
                 .map { entities ->
                     val dailyTask = dailyTaskDao.getDailyTaskById(taskId)
-                    if(dailyTask.englishDate==0L){
-                        withContext(dispatcher){entities.toModel()}
-                    }else{
+                    if (dailyTask != null && dailyTask.englishDate == 0L) {
+                        withContext(dispatcher) { entities.toModel() }
+                    } else {
                         emptyList()
                     }
                 }
@@ -128,13 +131,14 @@ class DailyTaskRepository @Inject constructor(
         }
     }
 
-    suspend fun getDailyTaskById(taskId: Long): DailyTask {
-        return dailyTaskDao.getDailyTaskById(taskId)
-            .toModel(observeDurationsByTaskId(taskId).map { durations ->
+    suspend fun getDailyTaskById(taskId: Long): DailyTask? {
+        return dailyTaskDao.getDailyTaskById(taskId)?.let { entity ->
+            entity.toModel(observeDurationsByTaskId(taskId).map { durations ->
                 durations.map {
                     it.toEntity(taskId)
                 }
             }.first())
+        }
     }
 
     suspend fun createOrUpdateDailyTask(dailyTask: DailyTask): Result<Long> {
@@ -148,26 +152,25 @@ class DailyTaskRepository @Inject constructor(
 
     suspend fun createOrUpdateDailyTaskWithDurations(dailyTask: DailyTask): Result<Long> {
         return try {
-            var id=-1L
+            var id = -1L
             val maxTaskId = getMaxTaskId().first()
-            if(maxTaskId!=-1L) {
-                val lastStoredTask = dailyTaskDao.getDailyTaskById(maxTaskId)
-                id = if (lastStoredTask.title.isEmpty()) {
-                    dailyTaskDao.upsertDailyTask(
-                        dailyTask.toEntity().copy(id = getMaxTaskId().first())
-                    )
-                    getMaxTaskId().first()
-                } else if (dailyTask.id != 0L) {
-                    dailyTask.id
-                } else {
-                    dailyTaskDao.upsertDailyTask(dailyTask.toEntity())
-                }
-                val durationsToCreate =
-                    dailyTask.durations.filter { it.startTime != 0L && it.endTime != 0L }
-                if (durationsToCreate.isNotEmpty()) {
-                    durationsToCreate.forEach { taskDuration ->
-                        taskDurationDao.upsertTaskDuration(taskDuration.toEntity(id))
-                    }
+            val lastStoredTask = dailyTaskDao.getDailyTaskById(maxTaskId)
+            id = if (lastStoredTask != null && lastStoredTask.title.isEmpty()) {
+                dailyTaskDao.upsertDailyTask(
+                    dailyTask.toEntity().copy(id = getMaxTaskId().first())
+                )
+                getMaxTaskId().first()
+            } else if (dailyTask.id != 0L) {
+                dailyTaskDao.upsertDailyTask(dailyTask.toEntity())
+                dailyTask.id
+            } else {
+                dailyTaskDao.upsertDailyTask(dailyTask.toEntity())
+            }
+            val durationsToCreate =
+                dailyTask.durations.filter { it.startTime != 0L && it.endTime != 0L }
+            if (durationsToCreate.isNotEmpty()) {
+                durationsToCreate.forEach { taskDuration ->
+                    taskDurationDao.upsertTaskDuration(taskDuration.toEntity(id))
                 }
             }
             Result.success(id)

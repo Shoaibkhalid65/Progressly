@@ -24,6 +24,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -34,11 +36,11 @@ import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,7 +50,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.progresstracker.model.SatisfyPercentage
 import com.example.progresstracker.navigation.Screen
-import com.example.progresstracker.ui.gaols.showToast
+import com.example.progresstracker.utils.DateTimeUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +59,7 @@ fun CreateEditTaskScreen(
     viewModel: CreateEditTaskViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
@@ -71,7 +73,7 @@ fun CreateEditTaskScreen(
                 }
 
                 is CreateEditTaskUiEvent.Error -> {
-                    showToast(context, event.message)
+                    snackbarHostState.showSnackbar(message = event.message)
                 }
             }
         }
@@ -87,7 +89,10 @@ fun CreateEditTaskScreen(
                 windowInsets = WindowInsets()
             )
         },
-        contentWindowInsets = WindowInsets()
+        contentWindowInsets = WindowInsets(),
+        snackbarHost = {
+            SnackbarHost(snackbarHostState)
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -155,13 +160,13 @@ fun CreateEditTaskScreen(
                         viewModel.updateIsTimePickerForStartTime(it)
                     },
                     millisToFormatedTime = {
-                        viewModel.millisToFormattedTime(it)
+                        DateTimeUtils.millisToFormattedTime(it)
                     },
                     onDurationSelected = {
                         viewModel.updateSelectedDurationId(state.durationId)
                     },
                     millisToFormatedDuration = {
-                        viewModel.millisToFormattedDuration(it)
+                        DateTimeUtils.millisToFormattedDuration(it)
                     }
                 )
 
@@ -207,7 +212,7 @@ fun CreateEditTaskScreen(
                         viewModel.updateShowTimePickerDialog(false)
                     }
                 ) { hour, minute ->
-                    val timeInMillis = viewModel.timePickerToMillis(hour, minute)
+                    val timeInMillis = DateTimeUtils.timePickerToMillis(hour, minute)
                     val startTimeToUpdate = uiState.isTimePickerForStartTime
                     if (startTimeToUpdate) {
                         viewModel.onTaskDurationUpdated(
@@ -226,17 +231,6 @@ fun CreateEditTaskScreen(
                 }
             }
         }
-
-//        if(uiState.showTimePickerDialog){
-//            TimePickerDialog(
-//                onDismiss = {
-//                    viewModel.updateShowTimePickerDialog(false)
-//                }
-//            ) { hour,minute ->
-//                val timeInMillis = viewModel.timePickerToMillis(hour,minute)
-//                viewModel.onTaskDurationUpdated()
-//            }
-//        }
     }
 }
 
@@ -343,28 +337,6 @@ fun TaskDurationItem(
 
     }
 }
-
-//@Composable
-//fun SelectTimeChip(timeName: String, time: Long, updateShowTimePicker:(Boolean)-> Unit,) {
-//    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-//        SuggestionChip(
-//            onClick = {
-//                updateShowTimePicker(true)
-//            },
-//            label = {
-//                Text(
-//                    text = if (time==0L){
-//                        "Select $timeName"
-//                    }else{
-//
-//                    }
-//                )
-//            }
-//        )
-//
-//
-//    }
-//}
 
 @Composable
 fun CustomTaskDataTextField(

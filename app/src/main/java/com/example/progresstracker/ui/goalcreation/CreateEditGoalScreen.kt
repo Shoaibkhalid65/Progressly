@@ -1,6 +1,5 @@
 package com.example.progresstracker.ui.goalcreation
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -21,6 +20,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -28,10 +29,10 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -40,7 +41,8 @@ import com.example.progresstracker.model.DifficultyLevel
 import com.example.progresstracker.model.ImportanceLevel
 import com.example.progresstracker.model.UrgencyLevel
 import com.example.progresstracker.navigation.Screen
-import com.example.progresstracker.ui.gaols.showToast
+import com.example.progresstracker.utils.DateTimeUtils
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,20 +53,20 @@ fun CreateEditGoalScreen(
     createEditGoalViewModel: CreateEditGoalViewModel = hiltViewModel(),
 ) {
     val uiState by createEditGoalViewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         createEditGoalViewModel.uiEvent.collect { event ->
             when (event) {
                 is CreateEditGoalUiEvent.Error -> {
-                    showToast(context, event.errorMessage)
+                    snackbarHostState.showSnackbar(event.errorMessage)
                 }
 
                 CreateEditGoalUiEvent.NavigateToListScreen -> {
                     navHostController.navigate(Screen.GoalScreen.route) {
-                        popUpTo(Screen.CreateEditGoalScreen.route){
-                            inclusive=true
+                        popUpTo(Screen.CreateEditGoalScreen.route) {
+                            inclusive = true
                         }
                     }
                 }
@@ -87,6 +89,11 @@ fun CreateEditGoalScreen(
                 windowInsets = WindowInsets()
             )
         },
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState
+            )
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -127,25 +134,20 @@ fun CreateEditGoalScreen(
                 maxLines = 3
             )
 
-//            OutlinedTextField(
-//                value = if (uiState.expectedCompletionDate == 0L) {
-//                    ""
-//                } else {
-//                    formatedDate(uiState.expectedCompletionDate)
-//                },
-//                onValueChange = {},
-//                readOnly = true,
-//                modifier = Modifier.clickable {
-//                    createEditGoalViewModel.updateDisplayStateOfDatePickerDialog(true)
-//                }
-//            )
             Button(
                 onClick = {
                     createEditGoalViewModel.updateDisplayStateOfDatePickerDialog(true)
                 }
             ) {
                 Text(
-                    text = "Select Expected Completion Date"
+                    text = if (uiState.expectedCompletionDate != 0L) {
+                        DateTimeUtils.formatedDate(
+                            uiState.expectedCompletionDate,
+                            isOnlyDateRequired = true
+                        )
+                    } else {
+                        "Select Expected Completion Date"
+                    }
                 )
             }
 
@@ -237,7 +239,9 @@ fun CreateEditGoalScreen(
             onDismiss = {
                 createEditGoalViewModel.updateDisplayStateOfDatePickerDialog(false)
             }) {
-            showToast(context, "Error : $it")
+            scope.launch {
+                snackbarHostState.showSnackbar(message = "Error : $it")
+            }
         }
     }
 }
