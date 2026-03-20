@@ -280,6 +280,7 @@ fun ExpectedCompletionDatePickerDialog(
         },
         shape = RoundedCornerShape(12.dp)
     ) {
+
         DatePicker(state)
     }
 }
