@@ -30,6 +30,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavHostController
 import com.example.progresstracker.navigation.AppNavGraph
 import com.example.progresstracker.navigation.BottomBarDestination
+import com.example.progresstracker.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -39,7 +40,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            AppNavGraph()
+            AppTheme {
+                AppNavGraph()
+            }
         }
     }
 }

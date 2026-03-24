@@ -5,7 +5,6 @@ import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.Upsert
 import com.example.progresstracker.data.local.db.entity.GoalEntity
-import com.example.progresstracker.model.Goal
 import kotlinx.coroutines.flow.Flow
 
 @Dao
