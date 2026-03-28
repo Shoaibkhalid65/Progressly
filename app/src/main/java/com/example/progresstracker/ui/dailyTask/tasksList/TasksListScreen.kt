@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ImageNotSupported
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -45,6 +47,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -101,7 +104,6 @@ fun TasksListScreen(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
         ) {
             item {
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -167,13 +169,15 @@ fun TasksListScreen(
 
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     SelectionOption.entries.forEach { selectionOption ->
                         FilterChip(
-                            selected = selectionOption==uiState.selectionOption,
+                            selected = selectionOption == uiState.selectionOption,
                             onClick = {
                                 viewModel.updateSelectionOption(selectionOption)
                             },
@@ -191,21 +195,56 @@ fun TasksListScreen(
                 }
             }
 
-            items(items = uiState.tasks, key = { it.id }) { dailyTask ->
-                DailyTaskItem(
-                    dailyTask = dailyTask,
-                    totalDurationFormatted = DateTimeUtils.millisToFormattedDuration(dailyTask.totalTaskDuration),
-                    onEditClick = {
-                        viewModel.onUpdateTaskClick(it)
-                    },
-                    onDeleteClick = {
-                        viewModel.updateShowDeleteDialog(true)
-                        viewModel.updateTaskToDeleteId(it)
-                    },
-                    formatedDate = { millis, isOnlyDate ->
-                        DateTimeUtils.formatedDate(millis, isOnlyDate)
+            if (uiState.tasks.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillParentMaxWidth()
+                            .fillParentMaxHeight(0.7f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(
+                                16.dp,
+                                Alignment.CenterVertically
+                            ),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ImageNotSupported,
+                                contentDescription = "No daily task available icon",
+                                modifier = Modifier.size(72.dp),
+                                tint = MaterialTheme.colorScheme.errorContainer
+                            )
+                            Text(
+                                text = "No Daily Task Found!\nTap + button to create the new task",
+                                color = MaterialTheme.colorScheme.errorContainer,
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Medium,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
-                )
+                }
+            } else {
+                items(items = uiState.tasks, key = { it.id }) { dailyTask ->
+                    DailyTaskItem(
+                        dailyTask = dailyTask,
+                        totalDurationFormatted = DateTimeUtils.millisToFormattedDuration(dailyTask.totalTaskDuration),
+                        onEditClick = {
+                            viewModel.onUpdateTaskClick(it)
+                        },
+                        onDeleteClick = {
+                            viewModel.updateShowDeleteDialog(true)
+                            viewModel.updateTaskToDeleteId(it)
+                        },
+                        formatedDate = { millis, isOnlyDate ->
+                            DateTimeUtils.formatedDate(millis, isOnlyDate)
+                        }
+                    )
+                }
             }
         }
     }

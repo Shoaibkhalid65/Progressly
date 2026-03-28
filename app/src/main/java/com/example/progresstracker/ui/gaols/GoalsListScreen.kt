@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ImageNotSupported
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -54,7 +55,6 @@ import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -65,7 +65,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -174,7 +177,7 @@ fun GoalsListScreen(
                     )
                 },
                 modifier = Modifier.graphicsLayer {
-                    translationY= snackbarOffset
+                    translationY = snackbarOffset
                 }
             )
         }
@@ -256,32 +259,64 @@ fun GoalsListScreen(
                                 }
                             }
                         }
-                        items(
-                            items = when (index) {
-                                0 -> uiState.allGoals
-                                1 -> uiState.pendingGoals
-                                2 -> uiState.completedGoals
-                                else -> emptyList()
-                            },
-                            key = { it.id }
-                        ) { goal ->
-                            GoalItem(
-                                goal,
-                                onDeleteGoal = {
-                                    goalsListViewModel.onDeleteGoalClick(goal.id)
-                                },
-                                onEditGoal = {
-                                    goalsListViewModel.onEditGoalClick(goal.id)
-                                },
-                                isCompleted = goal.isCompleted,
-                                onToggleChanged = {
-                                    goalsListViewModel.onIsCompletedToggleClick(goal, it)
-                                },
-                                formatedDate = { millis, isOnlyDate ->
-                                    DateTimeUtils.formatedDate(millis, isOnlyDate)
+                        if (uiState.allGoals.isEmpty()) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillParentMaxWidth()
+                                        .fillParentMaxHeight(0.7f),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.ImageNotSupported,
+                                            contentDescription = "No goals available icon",
+                                            modifier = Modifier.size(72.dp),
+                                            tint = MaterialTheme.colorScheme.errorContainer
+                                        )
+                                        Text(
+                                            text = "No Goals Found!\nTap + button to create the new goal",
+                                            color = MaterialTheme.colorScheme.errorContainer,
+                                            fontSize = 17.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    }
                                 }
-                            )
+                            }
+                        } else {
 
+                            items(
+                                items = when (index) {
+                                    0 -> uiState.allGoals
+                                    1 -> uiState.pendingGoals
+                                    2 -> uiState.completedGoals
+                                    else -> emptyList()
+                                },
+                                key = { it.id }
+                            ) { goal ->
+                                GoalItem(
+                                    goal,
+                                    onDeleteGoal = {
+                                        goalsListViewModel.onDeleteGoalClick(goal.id)
+                                    },
+                                    onEditGoal = {
+                                        goalsListViewModel.onEditGoalClick(goal.id)
+                                    },
+                                    isCompleted = goal.isCompleted,
+                                    onToggleChanged = {
+                                        goalsListViewModel.onIsCompletedToggleClick(goal, it)
+                                    },
+                                    formatedDate = { millis, isOnlyDate ->
+                                        DateTimeUtils.formatedDate(millis, isOnlyDate)
+                                    }
+                                )
+
+                            }
                         }
                     }
                 }
