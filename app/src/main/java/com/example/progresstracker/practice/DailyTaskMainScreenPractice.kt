@@ -46,6 +46,7 @@ fun DailyTaskMainScreen3() {
                 visible = pagerState.currentPage == 0,
                 enter = fadeIn() + slideInHorizontally(),
                 exit = fadeOut() + slideOutHorizontally()
+
             ) {
                 TopAppBar(
                     title = { Text("My Tasks Screen") },
