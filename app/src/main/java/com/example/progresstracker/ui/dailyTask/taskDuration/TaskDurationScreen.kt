@@ -1,5 +1,6 @@
 package com.example.progresstracker.ui.dailyTask.taskDuration
 
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -49,12 +50,14 @@ import com.example.progresstracker.R
 import com.example.progresstracker.model.TaskDuration
 import com.example.progresstracker.ui.gaols.showToast
 import com.example.progresstracker.utils.DateTimeUtils
+import com.example.progresstracker.utils.MyNotificationManager
 
 @Composable
 fun TaskDurationScreen(
     snackbarHostState: SnackbarHostState,
     viewModel: TaskDurationViewModel = hiltViewModel()
 ) {
+    val context=LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
@@ -157,6 +160,7 @@ fun TaskDurationScreen(
 
     if(uiState.showCreationDialog){
         DurationCreationDialog(
+            context=context,
             onDismiss = {
                 viewModel.updateShowCreationDialog(false)
             },
@@ -223,6 +227,7 @@ fun DeleteDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DurationCreationDialog(
+    context: Context,
     onDismiss: () -> Unit,
     onConfirm: (Long) -> Unit,
     startTime: Long,
@@ -265,6 +270,7 @@ fun DurationCreationDialog(
             Button(
                 onClick = {
                    onStartTimeUpdated(System.currentTimeMillis())
+                   MyNotificationManager.createNotification(context)
                 }
             ) {
                 Text(
@@ -293,6 +299,7 @@ fun DurationCreationDialog(
                     onEndTimeUpdated(endTime)
                     onConfirm(endTime)
                     onDismiss()
+                    MyNotificationManager.cancelNotification(context)
                 }
             ) {
                 Text(
