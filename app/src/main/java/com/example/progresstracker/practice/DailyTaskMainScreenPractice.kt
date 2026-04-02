@@ -40,6 +40,7 @@ fun DailyTaskMainScreen3() {
     val scope = rememberCoroutineScope()
     val titles = listOf("Tasks", "Durations")
 
+
     Scaffold(
         topBar = {
             AnimatedVisibility(
