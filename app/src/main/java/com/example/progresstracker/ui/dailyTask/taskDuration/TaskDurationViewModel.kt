@@ -1,11 +1,17 @@
 package com.example.progresstracker.ui.dailyTask.taskDuration
 
-import android.util.Log
+import android.content.Context
+import android.content.Intent
+import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.progresstracker.data.repository.DailyTaskRepository
 import com.example.progresstracker.model.TaskDuration
+import com.example.progresstracker.service.TrackingEvent
+import com.example.progresstracker.service.TrackingForegroundService
+import com.example.progresstracker.service.TrackingServiceManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -13,15 +19,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
 class TaskDurationViewModel @Inject constructor(
     private val repository: DailyTaskRepository,
+    private val trackingServiceManager: TrackingServiceManager,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TaskDurationUiState())
@@ -30,118 +34,138 @@ class TaskDurationViewModel @Inject constructor(
     private val _uiEvent = MutableSharedFlow<TaskDurationUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
-
     init {
         loadTaskDurations()
-        loadStartTime()
+        observeTrackingState()
+        observeServiceEvents()
     }
 
+    // ── Private loaders ───────────────────────────────────────
 
     private fun loadTaskDurations() {
         viewModelScope.launch {
-            repository.observeDurationsForMaxTaskIdToShow().collect {durations ->
-                _uiState.update {
-                    it.copy(durations = durations, isLoading = false)
+            repository.observeDurationsForMaxTaskIdToShow().collect { durations ->
+                _uiState.update { it.copy(durations = durations, isLoading = false) }
+            }
+        }
+    }
+
+    private fun observeTrackingState() {
+        viewModelScope.launch {
+            trackingServiceManager.isTracking.collect { isTracking ->
+                _uiState.update { it.copy(isTracking = isTracking) }
+            }
+        }
+        viewModelScope.launch {
+            trackingServiceManager.elapsedMillis.collect { elapsed ->
+                _uiState.update { it.copy(elapsedMillis = elapsed) }
+            }
+        }
+        viewModelScope.launch {
+            trackingServiceManager.startTime.collect { startTime ->
+                _uiState.update { it.copy(startTime = startTime) }
+            }
+        }
+    }
+
+    private fun observeServiceEvents() {
+        viewModelScope.launch {
+            trackingServiceManager.events.collect { event ->
+                when (event) {
+                    is TrackingEvent.Cancelled -> {
+                        _uiState.update { it.copy(showCreationDialog = false) }
+                    }
+                    is TrackingEvent.StopAndSave -> {
+                        // Duration already saved by the Service — just close the dialog
+                        _uiState.update { it.copy(showCreationDialog = false) }
+                    }
                 }
             }
         }
     }
 
-    private fun loadStartTime() {
+    // ── Public actions (called from UI buttons) ───────────────
+
+    fun startTracking() {
+        val startTime = System.currentTimeMillis()
+        trackingServiceManager.startTracking(startTime)
+
+        val intent = TrackingForegroundService.startIntent(context, startTime)
+        context.startForegroundService(intent)
+
+        _uiState.update { it.copy(showCreationDialog = true) }
+    }
+
+    // In-app "Save & Stop" button — app is alive, so ViewModel saves directly
+    fun stopAndSave() {
+        val startTime = trackingServiceManager.startTime.value
+        val endTime = startTime + trackingServiceManager.elapsedMillis.value
+        saveDuration(startTime = startTime, endTime = endTime)
+        sendActionToService(TrackingForegroundService.ACTION_CANCEL) // just kill the service, no double-save
+        _uiState.update { it.copy(showCreationDialog = false) }
+    }
+
+    // In-app "Discard" button
+    fun cancelTracking() {
+        sendActionToService(TrackingForegroundService.ACTION_CANCEL)
+        _uiState.update { it.copy(showCreationDialog = false) }
+    }
+
+    private fun sendActionToService(action: String) {
+        context.startService(
+            Intent(context, TrackingForegroundService::class.java).apply {
+                this.action = action
+            }
+        )
+    }
+
+    // ── Duration persistence ──────────────────────────────────
+
+    private fun saveDuration(startTime: Long, endTime: Long) {
+        if (startTime == 0L || endTime <= startTime) {
+            viewModelScope.launch {
+                _uiEvent.emit(TaskDurationUiEvent.Error("Invalid duration times"))
+            }
+            return
+        }
         viewModelScope.launch {
-            repository.observeStartTime().collect { startTime ->
-                _uiState.update {
-                    it.copy(startTime = startTime)
-                }
+            repository.createOrUpdateTaskDuration(
+                TaskDuration(startTime = startTime, endTime = endTime)
+            ).onSuccess {
+                _uiEvent.emit(TaskDurationUiEvent.Success("Duration saved"))
+            }.onFailure {
+                _uiEvent.emit(TaskDurationUiEvent.Error(it.message ?: "Failed to save"))
             }
         }
     }
 
-    fun updateShowCreationDialog(showDialog: Boolean) {
-        _uiState.update {
-            it.copy(showCreationDialog = showDialog)
-        }
+    // ── Dialog state ──────────────────────────────────────────
+
+    fun updateShowCreationDialog(show: Boolean) {
+        _uiState.update { it.copy(showCreationDialog = show) }
     }
 
-    fun updateShowDeletionDialog(showDialog: Boolean) {
-        _uiState.update {
-            it.copy(showDeleteDialog = showDialog)
-        }
+    fun updateShowDeletionDialog(show: Boolean) {
+        _uiState.update { it.copy(showDeleteDialog = show) }
     }
 
-    fun updateShowAllDeletionDialog(showDialog: Boolean) {
-        _uiState.update {
-            it.copy(showDeleteAllDialog = showDialog)
-        }
+    fun updateShowAllDeletionDialog(show: Boolean) {
+        _uiState.update { it.copy(showDeleteAllDialog = show) }
     }
 
-    fun updateDurationToDeleteId(durationId: Long) {
-        _uiState.update {
-            it.copy(durationToDeleteId = durationId)
-        }
+    fun updateDurationToDeleteId(id: Long) {
+        _uiState.update { it.copy(durationToDeleteId = id) }
     }
 
-    fun updateEndTime(endTime: Long) {
-        _uiState.update {
-            it.copy(endTime = endTime)
-        }
-    }
-
-    fun saveStartTime(millis: Long) {
-        viewModelScope.launch {
-            repository.createOrEditStartTime(millis)
-        }
-    }
-
-
-    fun createTaskDuration(taskDuration: TaskDuration) {
-        viewModelScope.launch {
-            if (taskDuration.startTime != 0L && taskDuration.endTime != 0L) {
-                repository.createOrUpdateTaskDuration(taskDuration)
-                    .onSuccess {
-                        _uiEvent.emit(TaskDurationUiEvent.Success("Duration created of id:$it"))
-                    }
-                    .onFailure {
-                        _uiEvent.emit(
-                            TaskDurationUiEvent.Error(
-                                it.message ?: "Unknown Error Message"
-                            )
-                        )
-                    }
-                saveStartTime(0L)
-                updateEndTime(0L)
-            } else {
-                _uiEvent.emit(
-                    TaskDurationUiEvent.Error(
-                        "Start or End Time is empty \n start time : ${taskDuration.startTime} \n end time : ${taskDuration.endTime}"
-                    )
-                )
-            }
-        }
-    }
+    // ── Deletion ──────────────────────────────────────────────
 
     fun deleteTaskDuration(durationId: Long) {
         viewModelScope.launch {
             if (durationId != -1L) {
                 val taskDuration = repository.observeDurationById(durationId).first()
                 repository.deleteTaskDuration(taskDuration)
-                    .onSuccess { noOfDurationsDeleted ->
-                        when (noOfDurationsDeleted) {
-                            0 -> {
-                                _uiEvent.emit(TaskDurationUiEvent.Error("No Duration Deleted"))
-                            }
-
-                            1 -> {
-                                _uiEvent.emit(TaskDurationUiEvent.Success("Duration Deleted"))
-                            }
-
-                            else -> {
-                                _uiEvent.emit(TaskDurationUiEvent.Error("Multiple Durations Deleted"))
-                            }
-                        }
-                    }
-            } else {
-                _uiEvent.emit(TaskDurationUiEvent.Error("Duration id not found to delete duraiton"))
+                    .onSuccess { _uiEvent.emit(TaskDurationUiEvent.Success("Duration deleted")) }
+                    .onFailure { _uiEvent.emit(TaskDurationUiEvent.Error(it.message ?: "Error")) }
             }
         }
     }
@@ -149,40 +173,31 @@ class TaskDurationViewModel @Inject constructor(
     fun deleteTaskDurationsOfMaxId() {
         viewModelScope.launch {
             repository.deleteAllTaskDurationsOfMaxId()
-                .onSuccess { noOfDurationsDeleted ->
-                    when (noOfDurationsDeleted) {
-                        0 -> {
-                            _uiEvent.emit(TaskDurationUiEvent.Error("No Duration Deleted"))
-                        }
-
-                        else -> {
-                            _uiEvent.emit(TaskDurationUiEvent.Success("$noOfDurationsDeleted Durations Deleted"))
-                        }
-                    }
+                .onSuccess { n ->
+                    if (n == 0) _uiEvent.emit(TaskDurationUiEvent.Error("No durations deleted"))
+                    else _uiEvent.emit(TaskDurationUiEvent.Success("$n durations deleted"))
                 }
         }
     }
-
 }
+
+// ── State ─────────────────────────────────────────────────────────────────────
 
 data class TaskDurationUiState(
     val isLoading: Boolean = true,
     val durations: List<TaskDuration> = emptyList(),
+    val isTracking: Boolean = false,
+    val startTime: Long = 0L,
+    val elapsedMillis: Long = 0L,
     val showCreationDialog: Boolean = false,
     val showDeleteDialog: Boolean = false,
     val showDeleteAllDialog: Boolean = false,
     val durationToDeleteId: Long = -1L,
-    val startTime: Long = 0L,
-    val endTime: Long = 0L
 )
 
-fun TaskDurationUiState.toModel() = TaskDuration(
-    startTime = startTime,
-    endTime = endTime
-)
+// ── Events ────────────────────────────────────────────────────────────────────
 
 sealed class TaskDurationUiEvent {
     data class Success(val message: String) : TaskDurationUiEvent()
     data class Error(val message: String) : TaskDurationUiEvent()
 }
-
