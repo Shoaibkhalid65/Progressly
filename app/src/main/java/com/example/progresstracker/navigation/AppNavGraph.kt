@@ -1,6 +1,8 @@
 package com.example.progresstracker.navigation
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -46,6 +48,8 @@ fun AppNavGraph() {
             Box(modifier = Modifier.animateContentSize()) {
                 AnimatedVisibility(
                     visible = showBottomBar,
+                    enter = EnterTransition.None,
+                    exit = ExitTransition.None
 //                    enter = slideInVertically { it } + expandVertically() + fadeIn(),
 //                    exit = slideOutVertically { it } + shrinkVertically() + fadeOut()
                 ) {

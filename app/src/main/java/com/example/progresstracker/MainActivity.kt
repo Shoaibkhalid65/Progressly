@@ -33,7 +33,6 @@ import androidx.navigation.NavHostController
 import com.example.progresstracker.navigation.AppNavGraph
 import com.example.progresstracker.navigation.BottomBarDestination
 import com.example.progresstracker.ui.theme.AppTheme
-import com.example.progresstracker.utils.MyNotificationManager
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -42,9 +41,6 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-
-        MyNotificationManager.createNotificationChannel(this)
 
         if(Build.VERSION.SDK_INT>= Build.VERSION_CODES.TIRAMISU){
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS),101)
