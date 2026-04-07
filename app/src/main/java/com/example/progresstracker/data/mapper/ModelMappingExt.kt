@@ -99,7 +99,7 @@ fun GoalEntity.toModel() = Goal(
         else -> DifficultyLevel.EASY
     },
     importanceLevel = when (importanceLevel.uppercase()) {
-        "VERY_IMPORTANT" -> ImportanceLevel.VERY_IMPORTANT
+        "VERY_IMPORTANT" -> ImportanceLevel.VERY_IMP
         "IMPORTANT" -> ImportanceLevel.IMPORTANT
         "AVERAGE" -> ImportanceLevel.AVERAGE
         else -> ImportanceLevel.AVERAGE
@@ -107,8 +107,8 @@ fun GoalEntity.toModel() = Goal(
     urgencyLevel = when (urgencyLevel.uppercase()) {
         "URGENT" -> UrgencyLevel.URGENT
         "AVERAGE" -> UrgencyLevel.AVERAGE
-        "NOT_URGENT" -> UrgencyLevel.NOT_URGENT
-        else -> UrgencyLevel.NOT_URGENT
+        "NOT_URGENT" -> UrgencyLevel.NOT_URG
+        else -> UrgencyLevel.NOT_URG
     }
 )
 

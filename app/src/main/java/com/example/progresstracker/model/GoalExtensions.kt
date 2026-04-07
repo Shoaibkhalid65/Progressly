@@ -9,11 +9,11 @@ fun DifficultyLevel.toLabel() = when (this) {
 fun ImportanceLevel.toLabel() = when (this) {
     ImportanceLevel.AVERAGE        -> "Average importance"
     ImportanceLevel.IMPORTANT      -> "Important"
-    ImportanceLevel.VERY_IMPORTANT -> "Very important"
+    ImportanceLevel.VERY_IMP -> "Very important"
 }
 
 fun UrgencyLevel.toLabel() = when (this) {
-    UrgencyLevel.NOT_URGENT -> "Not urgent"
+    UrgencyLevel.NOT_URG -> "Not urgent"
     UrgencyLevel.AVERAGE    -> "Average urgency"
     UrgencyLevel.URGENT     -> "Urgent"
 }
@@ -26,7 +26,7 @@ fun DifficultyLevel.badgeColor(): GoalBadgeColor = when (this) {
 }
 
 fun ImportanceLevel.badgeColor(): GoalBadgeColor = when (this) {
-    ImportanceLevel.VERY_IMPORTANT -> GoalBadgeColor.RED
+    ImportanceLevel.VERY_IMP-> GoalBadgeColor.RED
     ImportanceLevel.IMPORTANT      -> GoalBadgeColor.AMBER
     ImportanceLevel.AVERAGE        -> GoalBadgeColor.GRAY
 }
@@ -34,7 +34,7 @@ fun ImportanceLevel.badgeColor(): GoalBadgeColor = when (this) {
 fun UrgencyLevel.badgeColor(): GoalBadgeColor = when (this) {
     UrgencyLevel.URGENT     -> GoalBadgeColor.RED
     UrgencyLevel.AVERAGE    -> GoalBadgeColor.AMBER
-    UrgencyLevel.NOT_URGENT -> GoalBadgeColor.BLUE
+    UrgencyLevel.NOT_URG-> GoalBadgeColor.BLUE
 }
 
 enum class GoalBadgeColor { RED, AMBER, GREEN, BLUE, GRAY }

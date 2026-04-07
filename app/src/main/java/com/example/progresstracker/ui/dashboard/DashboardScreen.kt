@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,13 +16,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -38,24 +40,32 @@ import com.example.progresstracker.ui.dashboard.charts.LineChartData
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun DashboardScreen(
-    viewModel: DashboardViewModel = hiltViewModel()
-) {
+fun DashboardScreen(viewModel: DashboardViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Dashboard") },
-                windowInsets = WindowInsets()
+                title = {
+                    Text(
+                        "Dashboard",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
+                windowInsets = WindowInsets(0),
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             )
         },
-        contentWindowInsets = WindowInsets()
+        contentWindowInsets = WindowInsets(0),
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
 
         if (uiState.isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                LoadingIndicator()
+                CircularProgressIndicator()
             }
             return@Scaffold
         }
@@ -65,15 +75,12 @@ fun DashboardScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 12.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // ── Today summary cards ───────────────────────────────────
-            Text(
-                text = "Today",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
+
+            // ── Today Summary ─────────────────────────────────────────
+            DashboardSectionHeader("Today's Overview")
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -96,23 +103,13 @@ fun DashboardScreen(
                 )
             }
 
-            // ── Weekly bar chart ──────────────────────────────────────
-            Text(
-                text = "This week — work hours",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
+            // ── Weekly Bar Chart ──────────────────────────────────────
+            DashboardSectionHeader("This Week — Work Hours")
 
             if (uiState.weeklyDurations.isEmpty()) {
                 EmptyChartPlaceholder("No duration data yet")
             } else {
-                Card(
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
-                ) {
+                DashboardChartCard {
                     BarChart(
                         data = uiState.weeklyDurations.map { entry ->
                             BarChartData(
@@ -130,23 +127,13 @@ fun DashboardScreen(
                 }
             }
 
-            // ── Satisfaction trend ────────────────────────────────────
-            Text(
-                text = "30-day satisfaction trend",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
+            // ── Satisfaction Trend ────────────────────────────────────
+            DashboardSectionHeader("30-Day Satisfaction Trend")
 
             if (uiState.satisfactionTrend.isEmpty()) {
                 EmptyChartPlaceholder("No satisfaction data yet")
             } else {
-                Card(
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
-                ) {
+                DashboardChartCard {
                     LineChart(
                         data = uiState.satisfactionTrend.map { entry ->
                             LineChartData(
@@ -162,19 +149,47 @@ fun DashboardScreen(
                     )
                 }
             }
+
+            Spacer(Modifier.height(16.dp))
         }
     }
 }
 
-// ── Summary card ──────────────────────────────────────────────────────────────
+// ── Section Header ────────────────────────────────────────────────────────────
+
+@Composable
+fun DashboardSectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurface
+    )
+}
+
+// ── Chart Card wrapper ────────────────────────────────────────────────────────
+
+@Composable
+fun DashboardChartCard(content: @Composable () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        content()
+    }
+}
+
+// ── Summary Card ──────────────────────────────────────────────────────────────
 
 @Composable
 fun SummaryCard(label: String, value: String, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -185,29 +200,30 @@ fun SummaryCard(label: String, value: String, modifier: Modifier = Modifier) {
             Text(
                 text = label,
                 fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Medium
             )
             Text(
                 text = value,
                 fontSize = 22.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
 }
 
-
-// ── Empty state ───────────────────────────────────────────────────────────────
+// ── Empty State ───────────────────────────────────────────────────────────────
 
 @Composable
 fun EmptyChartPlaceholder(message: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+        ),
+        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Box(
             modifier = Modifier
@@ -218,7 +234,7 @@ fun EmptyChartPlaceholder(message: String) {
             Text(
                 text = message,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 14.sp
+                style = MaterialTheme.typography.bodyMedium
             )
         }
     }

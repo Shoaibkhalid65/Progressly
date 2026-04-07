@@ -18,10 +18,10 @@ enum class DifficultyLevel{
 }
 
 enum class ImportanceLevel {
-    VERY_IMPORTANT, IMPORTANT, AVERAGE
+    VERY_IMP, IMPORTANT, AVERAGE
 }
 
 enum class UrgencyLevel {
-    URGENT, AVERAGE, NOT_URGENT
+    URGENT, AVERAGE, NOT_URG
 }
 

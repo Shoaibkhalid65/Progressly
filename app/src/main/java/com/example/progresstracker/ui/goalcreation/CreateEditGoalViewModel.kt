@@ -101,7 +101,7 @@ data class CreateEditGoalUiState(
     val expectedCompletionDate: Long = 0L,
     val difficultyLevel: DifficultyLevel = DifficultyLevel.EASY,
     val importanceLevel: ImportanceLevel = ImportanceLevel.AVERAGE,
-    val urgencyLevel: UrgencyLevel = UrgencyLevel.NOT_URGENT,
+    val urgencyLevel: UrgencyLevel = UrgencyLevel.NOT_URG,
     val isEditMode: Boolean = false,
     val showDatePickerDialog: Boolean = false
 )

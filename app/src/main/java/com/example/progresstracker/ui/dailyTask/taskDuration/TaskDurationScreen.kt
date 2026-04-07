@@ -1,39 +1,44 @@
 package com.example.progresstracker.ui.dailyTask.taskDuration
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.TimerOff
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.airbnb.lottie.compose.LottieAnimation
@@ -54,98 +59,88 @@ fun TaskDurationScreen(
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
-                is TaskDurationUiEvent.Success -> {
-                    snackbarHostState.showSnackbar(message = event.message)
-                }
-
-                is TaskDurationUiEvent.Error -> {
-                    snackbarHostState.showSnackbar(message = event.message)
-                }
+                is TaskDurationUiEvent.Success -> snackbarHostState.showSnackbar(event.message)
+                is TaskDurationUiEvent.Error -> snackbarHostState.showSnackbar(event.message)
             }
         }
     }
-    if (uiState.durations.isEmpty()) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                imageVector = Icons.Default.TimerOff,
-                contentDescription = "empty durations",
-                tint = Color.LightGray,
-                modifier = Modifier.size(72.dp)
-            )
-            Text(
-                text = "Currently no durations!",
-                fontSize = 18.sp,
-                color = Color.LightGray
-            )
-        }
-    }
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(top = 12.dp, start = 12.dp, end = 12.dp, bottom = 80.dp)
-    ) {
-        items(uiState.durations, key = { it.id }) { duration ->
-            ListItem(
-                modifier = Modifier.fillMaxWidth(),
-                headlineContent = {
-                    Text(
-                        text = "Duration Time : ${DateTimeUtils.millisToFormattedDuration(duration.durationTime)}"
-                    )
-                },
-                leadingContent = {
-                    Text(text = duration.id.toString())
-                },
-                supportingContent = {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Start time ${DateTimeUtils.millisToFormattedTime(duration.startTime)}"
-                        )
 
-                        Text(
-                            text = "End time ${DateTimeUtils.millisToFormattedTime(duration.endTime)}"
-                        )
-                    }
-                },
-                trailingContent = {
-                    IconButton(onClick = {
-                        viewModel.updateShowDeletionDialog(true)
-                        viewModel.updateDurationToDeleteId(duration.id)
-                    }) {
+    if (uiState.durations.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier.size(80.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = null
+                            imageVector = Icons.Default.Schedule,
+                            contentDescription = null,
+                            modifier = Modifier.size(36.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
-            )
+                Text(
+                    text = "No Durations Tracked",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "Use the timer below to\nstart tracking your work",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                top = 12.dp, start = 16.dp, end = 16.dp, bottom = 100.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(uiState.durations, key = { it.id }) { duration ->
+                DurationCard(
+                    id = duration.id,
+                    durationMillis = duration.durationTime,
+                    startTime = duration.startTime,
+                    endTime = duration.endTime,
+                    onDelete = {
+                        viewModel.updateShowDeletionDialog(true)
+                        viewModel.updateDurationToDeleteId(duration.id)
+                    }
+                )
+            }
         }
     }
+
+    // ── Dialogs ───────────────────────────────────────────────────────────────
     if (uiState.showDeleteDialog) {
-        DeleteDialog(
+        DurationDeleteDialog(
             onDismiss = {
                 viewModel.updateShowDeletionDialog(false)
                 viewModel.updateDurationToDeleteId(-1L)
             },
-            onConfirm = {
-                viewModel.deleteTaskDuration(uiState.durationToDeleteId)
-            }
+            onConfirm = { viewModel.deleteTaskDuration(uiState.durationToDeleteId) }
         )
     }
+
     if (uiState.showDeleteAllDialog) {
-        DeleteDialog(
-            onDismiss = {
-                viewModel.updateShowAllDeletionDialog(false)
-            },
-            onConfirm = {
-                viewModel.deleteTaskDurationsOfMaxId()
-            }
+        DurationDeleteDialog(
+            title = "Delete All Durations?",
+            onDismiss = { viewModel.updateShowAllDeletionDialog(false) },
+            onConfirm = { viewModel.deleteTaskDurationsOfMaxId() }
         )
     }
 
@@ -164,45 +159,127 @@ fun TaskDurationScreen(
     }
 }
 
+// ── Duration Card ─────────────────────────────────────────────────────────────
+
 @Composable
-fun DeleteDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
+fun DurationCard(
+    id: Long,
+    durationMillis: Long,
+    startTime: Long,
+    endTime: Long,
+    onDelete: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = androidx.compose.foundation.BorderStroke(
+            0.5.dp, MaterialTheme.colorScheme.outlineVariant
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            Icons.Default.Schedule,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text(
+                        text = DateTimeUtils.millisToFormattedDuration(durationMillis),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = DateTimeUtils.millisToFormattedTime(startTime),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "→",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+                        Text(
+                            text = DateTimeUtils.millisToFormattedTime(endTime),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+    }
+}
+
+// ── Delete Dialog ─────────────────────────────────────────────────────────────
+
+@Composable
+fun DurationDeleteDialog(
+    title: String = "Delete Duration?",
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
             Button(
-                onClick = {
-                    onConfirm()
-                    onDismiss()
-                }
-            ) {
-                Text(
-                    text = "Confirm"
-                )
-            }
+                onClick = { onConfirm(); onDismiss() },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            ) { Text("Delete") }
         },
-        modifier = Modifier.padding(12.dp),
         dismissButton = {
-            TextButton(
-                onClick = onDismiss
-            ) {
-                Text(text = "Cancel")
-            }
+            OutlinedButton(onClick = onDismiss) { Text("Cancel") }
         },
         icon = {
-            Icon(Icons.Default.Delete, null)
-        },
-        title = {
-            Text(text = "Delete Duration(s)")
-        },
-        text = {
-            Text(
-                text = "Do you want to delete the duration(s),this operation can't be undone later"
+            Icon(
+                Icons.Default.Delete,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error
             )
         },
-        shape = RoundedCornerShape(16.dp)
+        title = { Text(title, fontWeight = FontWeight.SemiBold) },
+        text = {
+            Text(
+                "This duration will be permanently removed. This action cannot be undone.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        shape = RoundedCornerShape(20.dp)
     )
 }
 
+// ── Duration Creation Dialog (Bottom Sheet) ───────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -217,9 +294,7 @@ fun DurationCreationDialog(
     onCancel: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val composition by rememberLottieComposition(
-        spec = LottieCompositionSpec.RawRes(R.raw.clock_time)
-    )
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.clock_time))
     val progress by animateLottieCompositionAsState(
         composition = composition,
         iterations = LottieConstants.IterateForever,
@@ -229,42 +304,136 @@ fun DurationCreationDialog(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+        containerColor = MaterialTheme.colorScheme.surface,
+        dragHandle = {}
     ) {
         Column(
             modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
                 .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Track the Task Duration", fontWeight = FontWeight.SemiBold, fontSize = 17.sp)
+            // Handle indicator
+            Surface(
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .width(40.dp)
+                    .height(4.dp),
+                color = MaterialTheme.colorScheme.outlineVariant,
+                shape = RoundedCornerShape(2.dp)
+            ) {}
+
+            Text(
+                "Track Duration",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
 
             if (!isTracking) {
-                Button(onClick = onStartWork) { Text("Start Work") }
+                // Pre-start state
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Schedule,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            "Ready to start tracking",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                Button(
+                    onClick = onStartWork,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Text("Start Timer", fontWeight = FontWeight.SemiBold)
+                }
             }
 
             if (isTracking) {
-                Text("Work started at ${formattedStartTime(startTime)}")
+                // Active tracking state
+                Text(
+                    text = "Started at ${formattedStartTime(startTime)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
 
                 LottieAnimation(
                     composition = composition,
                     progress = { progress },
-                    modifier = Modifier.size(200.dp)
+                    modifier = Modifier.size(160.dp)
                 )
 
-                Text(
-                    text = "Duration : ${formattedElapsed(elapsedMillis)}",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Elapsed",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                        )
+                        Text(
+                            text = formattedElapsed(elapsedMillis),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
 
-                // Save the duration and stop
-                Button(onClick = onStopAndSave) { Text("Save & Stop") }
-
-                // Discard and stop
-                Button(onClick = onCancel) { Text("Discard") }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onCancel,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
+                        )
+                    ) {
+                        Text("Discard", fontWeight = FontWeight.Medium)
+                    }
+                    Button(
+                        onClick = onStopAndSave,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Save & Stop", fontWeight = FontWeight.SemiBold)
+                    }
+                }
             }
         }
     }
