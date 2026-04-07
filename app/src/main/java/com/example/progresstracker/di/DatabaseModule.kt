@@ -20,28 +20,31 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
-        return Room.databaseBuilder(
-            context,
-            AppDatabase::class.java,
-            name = "task_database_0"
-        ).build()
+        return Room
+            .databaseBuilder(
+                context,
+                AppDatabase::class.java,
+                name = "task_database_0"
+            )
+            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .build()
     }
 
     @Provides
     @Singleton
-    fun provideDailyTaskDao(appDatabase: AppDatabase): DailyTaskDao{
+    fun provideDailyTaskDao(appDatabase: AppDatabase): DailyTaskDao {
         return appDatabase.dailyTaskDao
     }
 
     @Provides
     @Singleton
-    fun provideTaskDurationDao(appDatabase: AppDatabase): TaskDurationDao{
+    fun provideTaskDurationDao(appDatabase: AppDatabase): TaskDurationDao {
         return appDatabase.durationDao
     }
 
     @Provides
     @Singleton
-    fun provideGoalDao(appDatabase: AppDatabase): GoalDao{
+    fun provideGoalDao(appDatabase: AppDatabase): GoalDao {
         return appDatabase.goalDao
     }
 

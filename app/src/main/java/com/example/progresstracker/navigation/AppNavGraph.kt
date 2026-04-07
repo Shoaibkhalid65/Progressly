@@ -16,11 +16,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -31,6 +34,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.progresstracker.practice.DailyTaskMainScreen2
 import com.example.progresstracker.ui.dailyTask.DailyTaskMainScreen
+import com.example.progresstracker.ui.dashboard.DashboardScreen
 import com.example.progresstracker.ui.gaols.GoalsListScreen
 import com.example.progresstracker.ui.goalcreation.CreateEditGoalScreen
 import com.example.progresstracker.ui.taskcreation.CreateEditTaskScreen
@@ -40,7 +44,7 @@ fun AppNavGraph() {
     val navHostController = rememberNavController()
     val navBackStackEntry by navHostController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val bottomBarRoutes = setOf(Screen.GoalScreen.route, Screen.DailyTaskScreen.route)
+    val bottomBarRoutes = setOf(Screen.GoalScreen.route, Screen.DashboardScreen.route, Screen.DailyTaskScreen.route)
     val showBottomBar = currentRoute in bottomBarRoutes
 
     Scaffold(
@@ -99,6 +103,10 @@ fun AppNavGraph() {
             ) {
                 CreateEditGoalScreen(navHostController)
             }
+
+            composable(Screen.DashboardScreen.route) {
+                DashboardScreen()
+            }
         }
     }
 }
@@ -126,6 +134,14 @@ fun AppBottomBar(navHostController: NavHostController, currentRoute: String?) {
                         contentDescription = "bottom bar item icon"
                     )
                 },
+                label = {
+                    Text(
+                        text = destination.title,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
+                alwaysShowLabel = false
 
             )
         }

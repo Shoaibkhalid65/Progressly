@@ -21,5 +21,6 @@ data class TaskDurationEntity(
     val dailyTaskId: Long,
     val startTime: Long,
     val endTime: Long,
-    val durationTime: Long
+    val durationTime: Long,
+    val dateEpoch: Long = 0L
 )

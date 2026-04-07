@@ -15,4 +15,6 @@ sealed class Screen(val route: String) {
         const val routeWithArgs = "create_edit_goal/{goalId}"
     }
 
+    object DashboardScreen : Screen("dashboard")
+
 }

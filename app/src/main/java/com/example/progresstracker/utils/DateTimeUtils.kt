@@ -70,4 +70,13 @@ object DateTimeUtils {
         val formatedDate = "$day $monthName $year AH"
         return formatedDate
     }
+
+    fun toMidnightEpoch(millis: Long): Long {
+        return Instant.ofEpochMilli(millis)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate()
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+    }
 }

@@ -11,6 +11,7 @@ import com.example.progresstracker.model.ImportanceLevel
 import com.example.progresstracker.model.SatisfyPercentage
 import com.example.progresstracker.model.TaskDuration
 import com.example.progresstracker.model.UrgencyLevel
+import com.example.progresstracker.utils.DateTimeUtils
 
 fun DailyTaskEntity.toModel(durations: List<TaskDurationEntity>): DailyTask = DailyTask(
     id = id,
@@ -53,7 +54,8 @@ fun TaskDuration.toEntity(dailyTaskId: Long) = TaskDurationEntity(
     dailyTaskId = dailyTaskId,
     startTime = startTime,
     endTime = endTime,
-    durationTime = durationTime
+    durationTime = durationTime,
+    dateEpoch = DateTimeUtils.toMidnightEpoch(startTime)
 )
 
 fun TaskDurationEntity.toModel() = TaskDuration(

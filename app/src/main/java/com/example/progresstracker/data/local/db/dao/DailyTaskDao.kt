@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.Upsert
 import com.example.progresstracker.data.local.db.entity.DailyTaskEntity
+import com.example.progresstracker.model.DailySatisfactionAvg
 import com.example.progresstracker.model.DailyTask
 import kotlinx.coroutines.flow.Flow
 
@@ -31,4 +32,29 @@ interface DailyTaskDao {
 // function to get the real tasks only not the dummy one that created for specific reason
     @Query("Select * from daily_tasks where englishDate != 0 order by englishDate DESC")
     fun getRealDailyTasks(): Flow<List<DailyTaskEntity>>
+
+    // DailyTaskDao.kt — normalize inside SQL, not in Kotlin
+    @Query("""
+    SELECT 
+        (englishDate / 86400000) * 86400000 AS dateEpoch,
+        AVG(satisfyPercentage) AS avgPercent
+    FROM daily_tasks
+    WHERE englishDate != 0
+    GROUP BY (englishDate / 86400000)
+    ORDER BY dateEpoch DESC
+    LIMIT 30
+""")
+    fun getDailySatisfactionAverage(): Flow<List<DailySatisfactionAvg>>
+
+    @Query("""
+    SELECT COUNT(*) FROM daily_tasks
+    WHERE (englishDate / 86400000) = (:todayEpoch / 86400000)
+""")
+    suspend fun getTaskCountForDay(todayEpoch: Long): Int
+
+    @Query("""
+    SELECT AVG(satisfyPercentage) FROM daily_tasks
+    WHERE englishDate = :todayEpoch
+""")
+    suspend fun getAvgSatisfactionForDay(todayEpoch: Long): Float?
 }

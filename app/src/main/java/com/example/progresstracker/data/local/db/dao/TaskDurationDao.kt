@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.Upsert
 import com.example.progresstracker.data.local.db.entity.TaskDurationEntity
+import com.example.progresstracker.model.DailyDurationTotal
 import com.example.progresstracker.model.DailyTask
 import com.example.progresstracker.model.TaskDuration
 import kotlinx.coroutines.flow.Flow
@@ -35,5 +36,22 @@ interface TaskDurationDao {
 
     @Query("Select * from task_durations where dailyTaskId=:dailyTaskId")
     fun getAllDurationsByTaskId(dailyTaskId: Long): Flow<List<TaskDurationEntity>>
+
+    @Query("""
+    SELECT dateEpoch, SUM(durationTime) as totalMillis
+    FROM task_durations
+    WHERE dateEpoch != 0
+    GROUP BY dateEpoch
+    ORDER BY dateEpoch DESC
+    LIMIT 30
+""")
+    fun getDailyDurationTotals(): Flow<List<DailyDurationTotal>>
+
+    @Query("""
+    SELECT dateEpoch, SUM(durationTime) as totalMillis
+    FROM task_durations
+    WHERE dateEpoch = :todayEpoch
+""")
+    suspend fun getTodayDurationTotal(todayEpoch: Long): DailyDurationTotal?
 
 }
