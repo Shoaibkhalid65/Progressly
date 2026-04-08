@@ -1,6 +1,5 @@
 package com.example.progresstracker.ui.settings
 
-
 import android.os.Build
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -62,6 +61,8 @@ fun AppearanceSettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    val prefs = (uiState as? AppPreferencesState.Ready) ?: return
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -103,25 +104,25 @@ fun AppearanceSettingsScreen(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     ThemeModeOption(
-                        modifier = Modifier.weight(1f),
-                        icon = Icons.Default.SettingsBrightness,
-                        label = "System",
-                        isSelected = uiState.themeMode == AppThemeMode.SYSTEM,
-                        onClick = { viewModel.setThemeMode(AppThemeMode.SYSTEM) }
+                        modifier   = Modifier.weight(1f),
+                        icon       = Icons.Default.SettingsBrightness,
+                        label      = "System",
+                        isSelected = prefs.themeMode == AppThemeMode.SYSTEM,
+                        onClick    = { viewModel.setThemeMode(AppThemeMode.SYSTEM) }
                     )
                     ThemeModeOption(
-                        modifier = Modifier.weight(1f),
-                        icon = Icons.Default.LightMode,
-                        label = "Light",
-                        isSelected = uiState.themeMode == AppThemeMode.LIGHT,
-                        onClick = { viewModel.setThemeMode(AppThemeMode.LIGHT) }
+                        modifier   = Modifier.weight(1f),
+                        icon       = Icons.Default.LightMode,
+                        label      = "Light",
+                        isSelected = prefs.themeMode == AppThemeMode.LIGHT,
+                        onClick    = { viewModel.setThemeMode(AppThemeMode.LIGHT) }
                     )
                     ThemeModeOption(
-                        modifier = Modifier.weight(1f),
-                        icon = Icons.Default.DarkMode,
-                        label = "Dark",
-                        isSelected = uiState.themeMode == AppThemeMode.DARK,
-                        onClick = { viewModel.setThemeMode(AppThemeMode.DARK) }
+                        modifier   = Modifier.weight(1f),
+                        icon       = Icons.Default.DarkMode,
+                        label      = "Dark",
+                        isSelected = prefs.themeMode == AppThemeMode.DARK,
+                        onClick    = { viewModel.setThemeMode(AppThemeMode.DARK) }
                     )
                 }
             }
@@ -136,19 +137,19 @@ fun AppearanceSettingsScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Use System Colors",
+                                text  = "Use System Colors",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "Picks colors from your device wallpaper",
+                                text  = "Picks colors from your device wallpaper",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         Switch(
-                            checked = uiState.useDynamicColor,
+                            checked         = prefs.useDynamicColor,
                             onCheckedChange = { viewModel.setUseDynamicColor(it) }
                         )
                     }
@@ -156,21 +157,19 @@ fun AppearanceSettingsScreen(
             }
 
             // ── Color Scheme ──────────────────────────────────────────
-            // Visually disabled when dynamic color is active
-            val colorSectionAlpha = if (uiState.useDynamicColor) 0.38f else 1f
+            val colorSectionAlpha = if (prefs.useDynamicColor) 0.38f else 1f
 
             SectionCard(title = "Color Scheme") {
                 Column(
-                    modifier = Modifier.alpha(colorSectionAlpha), // 👈 dim when disabled
+                    modifier = Modifier.alpha(colorSectionAlpha),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     AppColorScheme.entries.forEach { scheme ->
                         ColorSchemeOption(
-                            scheme = scheme,
-                            isSelected = uiState.colorScheme == scheme,
-                            // 👇 block clicks when dynamic color is on
-                            onClick = {
-                                if (!uiState.useDynamicColor) {
+                            scheme     = scheme,
+                            isSelected = prefs.colorScheme == scheme,
+                            onClick    = {
+                                if (!prefs.useDynamicColor) {
                                     viewModel.setColorScheme(scheme)
                                 }
                             }
@@ -208,8 +207,8 @@ fun ThemeModeOption(
         modifier = modifier
             .clip(RoundedCornerShape(14.dp))
             .clickable { onClick() },
-        shape = RoundedCornerShape(14.dp),
-        color = containerColor,
+        shape  = RoundedCornerShape(14.dp),
+        color  = containerColor,
         border = BorderStroke(
             width = if (isSelected) 1.5.dp else 0.5.dp,
             color = borderColor
@@ -223,17 +222,17 @@ fun ThemeModeOption(
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Icon(
-                imageVector = icon,
+                imageVector     = icon,
                 contentDescription = null,
                 tint = if (isSelected) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(22.dp)
             )
             Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
+                text       = label,
+                style      = MaterialTheme.typography.labelMedium,
                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                color = if (isSelected) MaterialTheme.colorScheme.primary
+                color      = if (isSelected) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -263,8 +262,8 @@ fun ColorSchemeOption(
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .clickable { onClick() },
-        shape = RoundedCornerShape(14.dp),
-        color = containerColor,
+        shape  = RoundedCornerShape(14.dp),
+        color  = containerColor,
         border = BorderStroke(
             width = if (isSelected) 1.5.dp else 0.5.dp,
             color = borderColor
@@ -274,10 +273,9 @@ fun ColorSchemeOption(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment    = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Color swatch dot
             Box(
                 modifier = Modifier
                     .size(32.dp)
@@ -292,36 +290,34 @@ fun ColorSchemeOption(
             ) {
                 if (isSelected) {
                     Icon(
-                        imageVector = Icons.Default.Check,
+                        imageVector     = Icons.Default.Check,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint     = Color.White,
                         modifier = Modifier.size(16.dp)
                     )
                 }
             }
 
-            // Name
             Text(
-                text = scheme.displayName,
-                style = MaterialTheme.typography.bodyLarge,
+                text       = scheme.displayName,
+                style      = MaterialTheme.typography.bodyLarge,
                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                color = if (isSelected) MaterialTheme.colorScheme.onSurface
+                color      = if (isSelected) MaterialTheme.colorScheme.onSurface
                 else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.weight(1f)
+                modifier   = Modifier.weight(1f)
             )
 
-            // Selected indicator text
             if (isSelected) {
                 Surface(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = RoundedCornerShape(6.dp)
+                    color  = MaterialTheme.colorScheme.primaryContainer,
+                    shape  = RoundedCornerShape(6.dp)
                 ) {
                     Text(
-                        text = "Active",
-                        style = MaterialTheme.typography.labelSmall,
+                        text       = "Active",
+                        style      = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        color      = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier   = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                     )
                 }
             }

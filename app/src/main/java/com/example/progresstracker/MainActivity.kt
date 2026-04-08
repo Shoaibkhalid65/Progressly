@@ -32,11 +32,16 @@ import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.example.progresstracker.data.local.datastore.AppPreferencesDataStore
 import com.example.progresstracker.navigation.AppNavGraph
 import com.example.progresstracker.navigation.BottomBarDestination
+import com.example.progresstracker.ui.settings.AppPreferencesState
 import com.example.progresstracker.ui.settings.AppPreferencesViewModel
 import com.example.progresstracker.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -44,23 +49,30 @@ class MainActivity : ComponentActivity() {
     private val prefViewModel: AppPreferencesViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 101)
         }
 
+        splashScreen.setKeepOnScreenCondition {
+            prefViewModel.uiState.value is AppPreferencesState.Loading
+        }
+
         setContent {
-            val uiState by prefViewModel.uiState.collectAsStateWithLifecycle()
-            AppTheme(
-                colorScheme = uiState.colorScheme,
-                themeMode = uiState.themeMode,
-                useDynamicColor = uiState.useDynamicColor
-            ) {
-                AppNavGraph()
+            val state by prefViewModel.uiState.collectAsStateWithLifecycle()
+
+            if (state is AppPreferencesState.Ready) {
+                val prefs = state as AppPreferencesState.Ready
+                AppTheme(
+                    colorScheme     = prefs.colorScheme,
+                    themeMode       = prefs.themeMode,
+                    useDynamicColor = prefs.useDynamicColor
+                ) {
+                    AppNavGraph()
+                }
             }
         }
     }

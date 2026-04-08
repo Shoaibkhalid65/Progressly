@@ -13,27 +13,34 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class AppPreferencesUiState(
-    val colorScheme: AppColorScheme = AppColorScheme.TERRACOTTA,
-    val themeMode: AppThemeMode = AppThemeMode.SYSTEM,
-    val useDynamicColor: Boolean = false
-)
+sealed interface AppPreferencesState {
+    data object Loading : AppPreferencesState
+    data class Ready(
+        val colorScheme: AppColorScheme,
+        val themeMode: AppThemeMode,
+        val useDynamicColor: Boolean
+    ) : AppPreferencesState
+}
 
 @HiltViewModel
 class AppPreferencesViewModel @Inject constructor(
     private val dataStore: AppPreferencesDataStore
 ) : ViewModel() {
 
-    val uiState: StateFlow<AppPreferencesUiState> = combine(
-        dataStore.colorScheme, dataStore.themeMode, dataStore.useDynamicColor
+    val uiState: StateFlow<AppPreferencesState> = combine(
+        dataStore.colorScheme,
+        dataStore.themeMode,
+        dataStore.useDynamicColor
     ) { scheme, mode, dynamicColor ->
-        AppPreferencesUiState(
-            colorScheme = scheme, themeMode = mode, useDynamicColor = dynamicColor
+        AppPreferencesState.Ready(
+            colorScheme     = scheme,
+            themeMode       = mode,
+            useDynamicColor = dynamicColor
         )
     }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly, // Eagerly so theme applies before first frame
-        initialValue = AppPreferencesUiState()
+        scope        = viewModelScope,
+        started      = SharingStarted.Eagerly,
+        initialValue = AppPreferencesState.Loading
     )
 
     fun setColorScheme(scheme: AppColorScheme) = viewModelScope.launch {
