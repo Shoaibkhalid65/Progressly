@@ -39,7 +39,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -52,7 +51,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedButton
@@ -67,7 +66,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -376,6 +374,7 @@ fun TasksEmptyState() {
 
 // ── Daily Task Item ───────────────────────────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DailyTaskItem(
     dailyTask: DailyTask,
@@ -386,9 +385,9 @@ fun DailyTaskItem(
 ) {
     val satisfyValue = dailyTask.satisfyPercentage.text
     val accentColor = when {
-        satisfyValue >= 80 -> Color(0xFF3B6D11)
-        satisfyValue >= 50 -> Color(0xFFBA7517)
-        else -> Color(0xFFA32D2D)
+        satisfyValue >= 80 -> MaterialTheme.colorScheme.primary
+        satisfyValue >= 50 -> MaterialTheme.colorScheme.tertiary
+        else -> MaterialTheme.colorScheme.error
     }
     val badgeColor = when {
         satisfyValue >= 80 -> GoalBadgeColor.GREEN
@@ -518,14 +517,20 @@ fun DailyTaskItem(
                             color = accentColor
                         )
                     }
-                    LinearProgressIndicator(
+//                    LinearProgressIndicator(
+//                        progress = { satisfyValue / 100f },
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .height(5.dp),
+//                        strokeCap = StrokeCap.Round,
+//                        color = accentColor,
+//                        trackColor = accentColor.copy(alpha = 0.12f)
+//                    )
+                    LinearWavyProgressIndicator(
                         progress = { satisfyValue / 100f },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(5.dp),
-                        strokeCap = StrokeCap.Round,
+                        modifier = Modifier.fillMaxWidth(),
                         color = accentColor,
-                        trackColor = accentColor.copy(alpha = 0.12f)
+                        trackColor = accentColor.copy(alpha = 0.12f),
                     )
                 }
 

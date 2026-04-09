@@ -53,7 +53,7 @@ fun LineChart(
     val animProgress = remember { Animatable(0f) }
     LaunchedEffect(data) {
         animProgress.snapTo(0f)
-        animProgress.animateTo(1f, animationSpec = tween(700))
+        animProgress.animateTo(1f, animationSpec = tween(900))
     }
 
     var selectedIndex by remember { mutableIntStateOf(-1) }

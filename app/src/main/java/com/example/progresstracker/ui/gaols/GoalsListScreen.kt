@@ -480,8 +480,10 @@ fun GoalItem(
     onToggleChanged: (Boolean) -> Unit,
     formatedDate: (Long, Boolean) -> String
 ) {
-    val accentColor = if (isCompleted) Color(0xFF3B6D11) else Color(0xFFBA7517)
-
+    val accentColor = if (isCompleted)
+        MaterialTheme.colorScheme.primary
+    else
+        MaterialTheme.colorScheme.tertiary
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(
