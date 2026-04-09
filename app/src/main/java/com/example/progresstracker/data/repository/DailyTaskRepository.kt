@@ -149,36 +149,94 @@ class DailyTaskRepository @Inject constructor(
         }
     }
 
-    suspend fun createOrUpdateDailyTaskWithDurations(dailyTask: DailyTask): Result<Long> {
-        return try {
-            var id = -1L
+//    suspend fun createOrUpdateDailyTaskWithDurations(dailyTask: DailyTask): Result<Long> {
+//        return try {
+//            var id = -1L
+//            val maxTaskId = getMaxTaskId().first()
+//            val lastStoredTask = dailyTaskDao.getDailyTaskById(maxTaskId)
+//            id = if (lastStoredTask != null && lastStoredTask.title.isEmpty()) {
+//                dailyTaskDao.upsertDailyTask(
+//                    dailyTask.toEntity().copy(id = maxTaskId)
+//                )
+//                maxTaskId
+//            } else if (dailyTask.id != 0L) {
+//                dailyTaskDao.upsertDailyTask(dailyTask.toEntity())
+//                dailyTask.id
+//            } else {
+//                dailyTaskDao.upsertDailyTask(dailyTask.toEntity())
+//            }
+//            taskDurationDao.deleteDurationsByTaskId(id)
+//
+//            val durationsToCreate = dailyTask.durations
+//                .filter { it.startTime != 0L && it.endTime != 0L }
+//            if (durationsToCreate.isNotEmpty()) {
+//                taskDurationDao.upsertAllTaskDurations(
+//                    durationsToCreate.map { it.toEntity(id) }
+//                )
+//            }
+//            Result.success(id)
+//        } catch (e: Exception) {
+//            Result.failure(e)
+//        }
+//    }
+suspend fun createOrUpdateDailyTaskWithDurations(dailyTask: DailyTask): Result<Long> {
+    return try {
+        val taskId: Long
+
+        if (dailyTask.id != 0L) {
+            // ── EDIT PATH ────────────────────────────────────────────
+            // This is an existing real task. Upsert it directly.
+            // Never look at maxTaskId — the dummy task is irrelevant here.
+            dailyTaskDao.upsertDailyTask(dailyTask.toEntity())
+            taskId = dailyTask.id
+        } else {
+            // ── CREATE PATH ──────────────────────────────────────────
+            // New task being created. Check if there is a dummy task
+            // waiting to be claimed (created by a foreground duration session).
             val maxTaskId = getMaxTaskId().first()
             val lastStoredTask = dailyTaskDao.getDailyTaskById(maxTaskId)
-            id = if (lastStoredTask != null && lastStoredTask.title.isEmpty()) {
-                dailyTaskDao.upsertDailyTask(
-                    dailyTask.toEntity().copy(id = maxTaskId)
-                )
-                maxTaskId
-            } else if (dailyTask.id != 0L) {
-                dailyTaskDao.upsertDailyTask(dailyTask.toEntity())
-                dailyTask.id
-            } else {
-                dailyTaskDao.upsertDailyTask(dailyTask.toEntity())
-            }
-            taskDurationDao.deleteDurationsByTaskId(id)
 
-            val durationsToCreate = dailyTask.durations
+            taskId = if (lastStoredTask != null && lastStoredTask.title.isEmpty()) {
+                // Claim the dummy task — overwrite it with the real task data
+                dailyTaskDao.upsertDailyTask(dailyTask.toEntity().copy(id = maxTaskId))
+                maxTaskId
+            } else {
+                // No dummy task exists — insert as a brand new task
+                dailyTaskDao.upsertDailyTask(dailyTask.toEntity())
+            }
+        }
+
+        // Delete old durations for this task, then re-insert current ones.
+        // On the EDIT path this correctly removes orphaned durations.
+        // On the CREATE path the dummy task had durations we must NOT delete
+        // if we claimed it — so only delete/reinsert if the task has UI durations.
+        if (dailyTask.id != 0L) {
+            // Edit: always delete and reinsert to handle removed durations
+            taskDurationDao.deleteDurationsByTaskId(taskId)
+            val durationsToSave = dailyTask.durations
                 .filter { it.startTime != 0L && it.endTime != 0L }
-            if (durationsToCreate.isNotEmpty()) {
+            if (durationsToSave.isNotEmpty()) {
                 taskDurationDao.upsertAllTaskDurations(
-                    durationsToCreate.map { it.toEntity(id) }
+                    durationsToSave.map { it.toEntity(taskId) }
                 )
             }
-            Result.success(id)
-        } catch (e: Exception) {
-            Result.failure(e)
+        } else {
+            // Create: only upsert UI durations on top of any existing
+            // foreground-service durations already attached to this taskId
+            val durationsToSave = dailyTask.durations
+                .filter { it.startTime != 0L && it.endTime != 0L }
+            if (durationsToSave.isNotEmpty()) {
+                taskDurationDao.upsertAllTaskDurations(
+                    durationsToSave.map { it.toEntity(taskId) }
+                )
+            }
         }
+
+        Result.success(taskId)
+    } catch (e: Exception) {
+        Result.failure(e)
     }
+}
 
     suspend fun deleteDailyTask(dailyTask: DailyTask): Result<Int> {
         return try {
