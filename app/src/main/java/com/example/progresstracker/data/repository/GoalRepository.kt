@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -54,12 +55,9 @@ class GoalRepository @Inject constructor(
     }
 
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     fun observeAllGoals(): Flow<List<Goal>> {
-        return goalDao.getAllGoals().map { goals ->
-            withContext(dispatcher) {
-                goals.toModel()
-            }
-        }
+        return goalDao.getAllGoals()
+            .map { goals -> goals.toModel() }
+            .flowOn(dispatcher)
     }
 }

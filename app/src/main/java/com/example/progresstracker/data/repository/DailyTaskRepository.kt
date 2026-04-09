@@ -15,6 +15,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -83,7 +84,9 @@ class DailyTaskRepository @Inject constructor(
     }
 
     fun observeAllDurations(): Flow<List<TaskDuration>> {
-        return taskDurationDao.getAllDurations().map { withContext(dispatcher) { it.toModel() } }
+        return taskDurationDao.getAllDurations()
+            .map { it.toModel() }
+            .flowOn(dispatcher)
     }
 
     fun observeDurationById(durationId: Long): Flow<TaskDuration> {
@@ -92,7 +95,8 @@ class DailyTaskRepository @Inject constructor(
 
     fun observeDurationsByTaskId(taskId: Long): Flow<List<TaskDuration>> {
         return taskDurationDao.getAllDurationsByTaskId(taskId)
-            .map { withContext(dispatcher) { it.toModel() } }
+            .map { it.toModel() }
+            .flowOn(dispatcher)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
