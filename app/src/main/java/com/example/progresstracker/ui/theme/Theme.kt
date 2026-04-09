@@ -16,9 +16,6 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.ui.platform.LocalContext
 
-// ─────────────────────────────────────────────────────────────────────────────
-// App Theme Enum  (stored in DataStore as ordinal Int)
-// ─────────────────────────────────────────────────────────────────────────────
 
 enum class AppThemeMode { SYSTEM, LIGHT, DARK }
 
@@ -29,13 +26,59 @@ enum class AppThemeMode { SYSTEM, LIGHT, DARK }
 @Immutable
 enum class AppColorScheme(
     val displayName: String,
-    val previewColor: Color   // shown as a dot/circle in the picker UI
+    val previewColor: Color,         // kept for any existing usages
+    val paletteColors: List<Color>   // 4 colors shown in the donut
 ) {
-    TERRACOTTA("Terracotta", Color(0xFF8F4C38)),
-    OCEAN("Ocean",           Color(0xFF1B6091)),
-    FOREST("Forest",         Color(0xFF3A6B35)),
-    VIOLET("Violet",         Color(0xFF6750A4)),
-    SLATE("Slate",           Color(0xFF3D5F6F)),
+    TERRACOTTA(
+        displayName = "Terracotta",
+        previewColor = Color(0xFF8F4C38),
+        paletteColors = listOf(
+            Color(0xFF8F4C38),   // primary
+            Color(0xFF77574E),   // secondary
+            Color(0xFF6C5D2F),   // tertiary
+            Color(0xFFFFDBD1)    // primaryContainer
+        )
+    ),
+    OCEAN(
+        displayName = "Ocean",
+        previewColor = Color(0xFF1B6091),
+        paletteColors = listOf(
+            Color(0xFF1B6091),
+            Color(0xFF4F616E),
+            Color(0xFF5C5A7E),
+            Color(0xFFCDE5FF)
+        )
+    ),
+    FOREST(
+        displayName = "Forest",
+        previewColor = Color(0xFF3A6B35),
+        paletteColors = listOf(
+            Color(0xFF3A6B35),
+            Color(0xFF52634E),
+            Color(0xFF38656B),
+            Color(0xFFBBF0B0)
+        )
+    ),
+    VIOLET(
+        displayName = "Violet",
+        previewColor = Color(0xFF6750A4),
+        paletteColors = listOf(
+            Color(0xFF6750A4),
+            Color(0xFF625B71),
+            Color(0xFF7D5260),
+            Color(0xFFEADDFF)
+        )
+    ),
+    SLATE(
+        displayName = "Slate",
+        previewColor = Color(0xFF3D5F6F),
+        paletteColors = listOf(
+            Color(0xFF3D5F6F),
+            Color(0xFF4E6169),
+            Color(0xFF5B5C7E),
+            Color(0xFFC0E3F6)
+        )
+    ),
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1,12 +1,11 @@
 package com.example.progresstracker.ui.settings
 
 import android.os.Build
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -42,13 +40,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.example.progresstracker.ui.components.SchemeDonut
 import com.example.progresstracker.ui.taskcreation.SectionCard
 import com.example.progresstracker.ui.theme.AppColorScheme
 import com.example.progresstracker.ui.theme.AppThemeMode
@@ -104,25 +103,25 @@ fun AppearanceSettingsScreen(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     ThemeModeOption(
-                        modifier   = Modifier.weight(1f),
-                        icon       = Icons.Default.SettingsBrightness,
-                        label      = "System",
+                        modifier = Modifier.weight(1f),
+                        icon = Icons.Default.SettingsBrightness,
+                        label = "System",
                         isSelected = prefs.themeMode == AppThemeMode.SYSTEM,
-                        onClick    = { viewModel.setThemeMode(AppThemeMode.SYSTEM) }
+                        onClick = { viewModel.setThemeMode(AppThemeMode.SYSTEM) }
                     )
                     ThemeModeOption(
-                        modifier   = Modifier.weight(1f),
-                        icon       = Icons.Default.LightMode,
-                        label      = "Light",
+                        modifier = Modifier.weight(1f),
+                        icon = Icons.Default.LightMode,
+                        label = "Light",
                         isSelected = prefs.themeMode == AppThemeMode.LIGHT,
-                        onClick    = { viewModel.setThemeMode(AppThemeMode.LIGHT) }
+                        onClick = { viewModel.setThemeMode(AppThemeMode.LIGHT) }
                     )
                     ThemeModeOption(
-                        modifier   = Modifier.weight(1f),
-                        icon       = Icons.Default.DarkMode,
-                        label      = "Dark",
+                        modifier = Modifier.weight(1f),
+                        icon = Icons.Default.DarkMode,
+                        label = "Dark",
                         isSelected = prefs.themeMode == AppThemeMode.DARK,
-                        onClick    = { viewModel.setThemeMode(AppThemeMode.DARK) }
+                        onClick = { viewModel.setThemeMode(AppThemeMode.DARK) }
                     )
                 }
             }
@@ -137,19 +136,19 @@ fun AppearanceSettingsScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text  = "Use System Colors",
+                                text = "Use System Colors",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text  = "Picks colors from your device wallpaper",
+                                text = "Picks colors from your device wallpaper",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         Switch(
-                            checked         = prefs.useDynamicColor,
+                            checked = prefs.useDynamicColor,
                             onCheckedChange = { viewModel.setUseDynamicColor(it) }
                         )
                     }
@@ -166,9 +165,9 @@ fun AppearanceSettingsScreen(
                 ) {
                     AppColorScheme.entries.forEach { scheme ->
                         ColorSchemeOption(
-                            scheme     = scheme,
+                            scheme = scheme,
                             isSelected = prefs.colorScheme == scheme,
-                            onClick    = {
+                            onClick = {
                                 if (!prefs.useDynamicColor) {
                                     viewModel.setColorScheme(scheme)
                                 }
@@ -207,8 +206,8 @@ fun ThemeModeOption(
         modifier = modifier
             .clip(RoundedCornerShape(14.dp))
             .clickable { onClick() },
-        shape  = RoundedCornerShape(14.dp),
-        color  = containerColor,
+        shape = RoundedCornerShape(14.dp),
+        color = containerColor,
         border = BorderStroke(
             width = if (isSelected) 1.5.dp else 0.5.dp,
             color = borderColor
@@ -222,17 +221,17 @@ fun ThemeModeOption(
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Icon(
-                imageVector     = icon,
+                imageVector = icon,
                 contentDescription = null,
                 tint = if (isSelected) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(22.dp)
             )
             Text(
-                text       = label,
-                style      = MaterialTheme.typography.labelMedium,
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                color      = if (isSelected) MaterialTheme.colorScheme.primary
+                color = if (isSelected) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -240,13 +239,18 @@ fun ThemeModeOption(
 }
 
 // ── Color Scheme Option Row ───────────────────────────────────────────────────
-
 @Composable
 fun ColorSchemeOption(
     scheme: AppColorScheme,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    val scale by animateFloatAsState(
+        targetValue = if (isSelected) 1.0f else 0.97f,
+        animationSpec = tween(200),
+        label = "scheme_scale"
+    )
+
     val borderColor = if (isSelected)
         MaterialTheme.colorScheme.primary
     else
@@ -260,10 +264,11 @@ fun ColorSchemeOption(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .scale(scale)
             .clip(RoundedCornerShape(14.dp))
             .clickable { onClick() },
-        shape  = RoundedCornerShape(14.dp),
-        color  = containerColor,
+        shape = RoundedCornerShape(14.dp),
+        color = containerColor,
         border = BorderStroke(
             width = if (isSelected) 1.5.dp else 0.5.dp,
             color = borderColor
@@ -272,54 +277,52 @@ fun ColorSchemeOption(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment    = Alignment.CenterVertically,
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(scheme.previewColor)
-                    .then(
-                        if (isSelected) Modifier.border(
-                            2.dp, MaterialTheme.colorScheme.primary, CircleShape
-                        ) else Modifier
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                if (isSelected) {
-                    Icon(
-                        imageVector     = Icons.Default.Check,
-                        contentDescription = null,
-                        tint     = Color.White,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-            }
-
-            Text(
-                text       = scheme.displayName,
-                style      = MaterialTheme.typography.bodyLarge,
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                color      = if (isSelected) MaterialTheme.colorScheme.onSurface
-                else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier   = Modifier.weight(1f)
+            // Donut with selection ring
+            SchemeDonut(
+                colors = scheme.paletteColors,
+                size = 46.dp,
+                strokeWidth = 13.dp,
+                isSelected = isSelected,
+                selectedRingColor = MaterialTheme.colorScheme.primary
             )
 
-            if (isSelected) {
-                Surface(
-                    color  = MaterialTheme.colorScheme.primaryContainer,
-                    shape  = RoundedCornerShape(6.dp)
-                ) {
-                    Text(
-                        text       = "Active",
-                        style      = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color      = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier   = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                    )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = scheme.displayName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                    color = if (isSelected) MaterialTheme.colorScheme.onSurface
+                    else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                // Subtitle hint of the palette mood
+                val mood = when (scheme) {
+                    AppColorScheme.TERRACOTTA -> "Warm earthy tones"
+                    AppColorScheme.OCEAN -> "Cool deep blues"
+                    AppColorScheme.FOREST -> "Natural greens"
+                    AppColorScheme.VIOLET -> "Rich purples"
+                    AppColorScheme.SLATE -> "Neutral blue-grey"
                 }
+                Text(
+                    text = mood,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                )
+            }
+
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp)
+                )
             }
         }
     }
