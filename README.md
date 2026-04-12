@@ -31,7 +31,7 @@ ProgressTracker helps you answer three questions every day
 - **How long did I work?** — Track live work sessions via a persistent foreground service with notification controls, or log manual durations.
 - **Am I making progress?** — View weekly bar charts, 30-day satisfaction trends, and today's summary on an analytics dashboard.
 
-Goals are tracked separately with a priority matrix (urgency × importance × difficulty) and an expected completion date, giving you a structured way to plan longer-horizon work alongside day-to-day activity.
+Goals are tracked separately with a priority matrix (urgency × importance × difficulty) and an expected completion date, giving you a structured way to plan longer-horizon work alongside day-to-day activity
 
 ---
 
