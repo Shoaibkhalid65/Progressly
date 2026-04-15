@@ -51,6 +51,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
@@ -66,6 +67,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -517,20 +519,14 @@ fun DailyTaskItem(
                             color = accentColor
                         )
                     }
-//                    LinearProgressIndicator(
-//                        progress = { satisfyValue / 100f },
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .height(5.dp),
-//                        strokeCap = StrokeCap.Round,
-//                        color = accentColor,
-//                        trackColor = accentColor.copy(alpha = 0.12f)
-//                    )
-                    LinearWavyProgressIndicator(
+                    LinearProgressIndicator(
                         progress = { satisfyValue / 100f },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(5.dp),
+                        strokeCap = StrokeCap.Round,
                         color = accentColor,
-                        trackColor = accentColor.copy(alpha = 0.12f),
+                        trackColor = accentColor.copy(alpha = 0.12f)
                     )
                 }
 
