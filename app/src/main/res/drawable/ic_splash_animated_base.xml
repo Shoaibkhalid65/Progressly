@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+
+    <!-- Ring radius recalc:
+         outer=192→128+192*0.667≈256  inner=128→128+128*0.667≈213  wait —
+         easier: centre stays 256,256. outer radius 192*0.667≈128. inner 128*0.667≈85.
+         stroke radius midpoint = (128+85)/2 ≈ 107.  strokeWidth = 43.
+         Top of ring: 256 - 128 = 128 (was 64). -->
+
+    <path
+        android:name="ring_main"
+        android:fillColor="#00000000"
+        android:strokeColor="#E07060"
+        android:strokeWidth="43"
+        android:strokeLineCap="butt"
+        android:pathData="
+        M 256,149
+        A 107,107 0 0,1 363,256
+        A 107,107 0 0,1 256,363
+        A 107,107 0 0,1 149,256
+        A 107,107 0 0,1 256,149
+        Z
+    "
+        android:trimPathStart="0"
+        android:trimPathEnd="1" />
+
+
+    <path
+        android:name="ring_highlight"
+        android:fillColor="#00000000"
+        android:strokeColor="#F0A898"
+        android:strokeWidth="43"
+        android:strokeLineCap="butt"
+        android:pathData="
+        M 256,149
+        A 107,107 0 0,1 363,256
+    "
+        android:trimPathStart="0"
+        android:trimPathEnd="1" />
+
+    <!-- Clip to inner circle (radius 85, centre 256,256) -->
+    <group android:name="bars_clip_group">
+        <clip-path
+            android:pathData="
+                M 256,171
+                A 85,85 0 1,1 255.99,171
+                Z
+            " />
+
+
+
+        <group
+            android:name="bar1_group"
+            android:pivotX="220"
+            android:pivotY="312"
+            android:scaleY="1">
+            <path
+                android:fillColor="#F5EDD5"
+                android:pathData="M 205,265 L 205,312 L 235,312 L 235,265 Z" />
+        </group>
+
+        <group
+            android:name="bar2_group"
+            android:pivotX="256"
+            android:pivotY="312"
+            android:scaleY="1">
+            <path
+                android:fillColor="#EDE4CC"
+                android:pathData="M 241,243 L 241,312 L 271,312 L 271,243 Z" />
+        </group>
+
+        <group
+            android:name="bar3_group"
+            android:pivotX="292"
+            android:pivotY="312"
+            android:scaleY="1">
+            <path
+                android:fillColor="#E07060"
+                android:pathData="M 277,212 L 277,312 L 307,312 L 307,212 Z" />
+        </group>
+
+    </group>
+
+</vector>

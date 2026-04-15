@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    ic_splash.xml  →  res/drawable/ic_splash.xml
+
+    512x512 viewport, centre at (256,256)
+    Ring outer radius 192, inner radius 128, thickness 64
+    Highlight arc: 12-oclock to 3-oclock (top-right quadrant)
+    3 bars clipped inside inner circle, bottom anchor y=340
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+
+    <!-- Coral donut ring via evenOdd fill -->
+    <path
+        android:fillColor="#E07060"
+        android:fillType="evenOdd"
+        android:pathData="
+            M 256,64
+            A 192,192 0 1,1 255.99,64
+            Z
+            M 256,128
+            A 128,128 0 1,0 256.01,128
+            Z
+        " />
+
+    <!-- Lighter coral highlight: top-right arc segment -->
+    <path
+        android:fillColor="#F0A898"
+        android:pathData="
+            M 256,64
+            A 192,192 0 0,1 448,256
+            L 384,256
+            A 128,128 0 0,0 256,128
+            Z
+        " />
+
+    <!-- Bars group clipped to inner circle -->
+    <group android:name="bars_group">
+        <clip-path
+            android:pathData="
+                M 256,128
+                A 128,128 0 1,1 255.99,128
+                Z
+            " />
+
+        <!-- Bar 1: left, short, warm cream -->
+        <path
+            android:name="bar1"
+            android:fillColor="#F5EDD5"
+            android:pathData="M 180,270 L 180,340 L 224,340 L 224,270 Z" />
+
+        <!-- Bar 2: middle, medium, slightly darker cream -->
+        <path
+            android:name="bar2"
+            android:fillColor="#EDE4CC"
+            android:pathData="M 234,236 L 234,340 L 278,340 L 278,236 Z" />
+
+        <!-- Bar 3: right, tallest, coral -->
+        <path
+            android:name="bar3"
+            android:fillColor="#E07060"
+            android:pathData="M 288,190 L 288,340 L 332,340 L 332,190 Z" />
+
+    </group>
+
+</vector>

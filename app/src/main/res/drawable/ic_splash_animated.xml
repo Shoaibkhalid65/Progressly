@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    ic_splash_animated.xml  →  res/drawable/ic_splash_animated.xml
+
+    Set as windowSplashScreenAnimatedIcon in your splash theme.
+    Base drawable: ic_splash_animated_base
+
+    Animation timeline:
+      0ms   ring_main draws clockwise         (700ms, decelerate)
+      0ms   ring_highlight draws clockwise    (700ms, decelerate)
+      300ms bar1 rises from bottom            (380ms, overshoot)
+      460ms bar2 rises from bottom            (380ms, overshoot)
+      600ms bar3 rises from bottom            (400ms, overshoot)
+     ~1000ms all complete
+
+    Targets must match android:name in ic_splash_animated_base.xml exactly.
+-->
+<animated-vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_splash_animated_base">
+
+    <target
+        android:name="ring_main"
+        android:animation="@animator/anim_ring_draw" />
+
+    <target
+        android:name="ring_highlight"
+        android:animation="@animator/anim_ring_draw" />
+
+    <target
+        android:name="bar1_group"
+        android:animation="@animator/anim_bar1_rise" />
+
+    <target
+        android:name="bar2_group"
+        android:animation="@animator/anim_bar2_rise" />
+
+    <target
+        android:name="bar3_group"
+        android:animation="@animator/anim_bar3_rise" />
+
+</animated-vector>
